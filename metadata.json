@@ -1,0 +1,60 @@
+{
+  "name": "qs5779-nixadmutils",
+  "version": "0.1.0",
+  "author": "Quien Sabe",
+  "summary": "A collection of generic scripts I use frequently to administer Linux systems.",
+  "license": "Apache-2.0",
+  "source": "https://github.com/qs5779/puppet-nixadmutils.git",
+  "project_page": "https://github.com/qs5779/puppet-nixadmutils.git",
+  "issues_url": "https://github.com/qs5779/puppet-nixadmutils/issues",
+  "dependencies": [
+
+  ],
+  "operatingsystem_support": [
+    {
+      "operatingsystem": "CentOS",
+      "operatingsystemrelease": [
+        "7"
+      ]
+    },
+    {
+      "operatingsystem": "OracleLinux",
+      "operatingsystemrelease": [
+        "7"
+      ]
+    },
+    {
+      "operatingsystem": "RedHat",
+      "operatingsystemrelease": [
+        "7"
+      ]
+    },
+    {
+      "operatingsystem": "Scientific",
+      "operatingsystemrelease": [
+        "7"
+      ]
+    },
+    {
+      "operatingsystem": "Debian",
+      "operatingsystemrelease": [
+        "8"
+      ]
+    },
+    {
+      "operatingsystem": "Ubuntu",
+      "operatingsystemrelease": [
+        "16.04"
+      ]
+    }
+  ],
+  "requirements": [
+    {
+      "name": "puppet",
+      "version_requirement": ">= 4.7.0 < 6.0.0"
+    }
+  ],
+  "pdk-version": "1.3.2",
+  "template-url": "file:///opt/puppetlabs/pdk/share/cache/pdk-templates.git",
+  "template-ref": "1.3.2-0-g07678c8"
+}

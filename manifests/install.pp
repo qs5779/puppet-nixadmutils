@@ -10,9 +10,9 @@ class nixadmutils::install {
 
 
   ['sh', 'csh'].each | String $ext | {
-    file { "/etc/profile.d/nixadminutils.${ext}":
+    file { "/etc/profile.d/nixadmutils.${ext}":
       ensure => 'file',
-      source => "puppet:///modules/nixadmutils/nixadminutils.${ext}",
+      source => "puppet:///modules/nixadmutils/nixadmutils.${ext}",
       mode   => '0644',
     }
   }

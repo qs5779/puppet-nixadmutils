@@ -1,10 +1,22 @@
 # nixadmutils
 #
-# A description of what this class does
+# Class to manage nixadmutils toolset
 #
-# @summary A short summary of the purpose of this class
+# @summary Class to manage nixadmutils toolset
 #
 # @example
 #   include nixadmutils
-class nixadmutils {
+class nixadmutils (
+  $wheelgroup = $nixadmutils::params::wheelgroup,
+) inherits ::nixadmutils::params {
+
+  $nixadmutilsdir = '/opt/nixadmutils'
+
+  File {
+    owner => 'root',
+    group => 'root',
+  }
+
+  include nixadmutils::install
+  include nixadmutils::config
 }

@@ -1,0 +1,8 @@
+# file managed by puppet do not edit
+# -*- Mode: Bash; tab-width: 2; indent-tabs-mode: nil -*- vim:sta:et:sw=2:ts=2:syntax=sh
+
+<% if scope['::osfamily'] == 'RedHat' %>
+RKHUNTERLOG=/var/log/rkhunter/rkhunter.log
+<% else %>
+RKHUNTERLOG=/var/log/rkhunter.log
+<% end %>

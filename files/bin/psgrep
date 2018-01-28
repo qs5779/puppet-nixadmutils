@@ -1,0 +1,77 @@
+#!/bin/bash
+# -*- Mode: Bash; tab-width: 2; indent-tabs-mode: nil -*- vim:sta:et:sw=2:ts=2:syntax=sh
+#
+# $Id: psgrep 1388 2016-07-02 17:54:43Z jim $
+# $Date: 2016-07-02 13:54:43 -0400 (Sat, 02 Jul 2016) $
+# $HeadURL: svn+ssh://svn.wtfo-guru.com/var/lib/svn/wtfopuppet/branches/wip4/puppet/modules/usrlocal/files/bin/psgrep $
+#
+# Simple description of script purpose here
+#
+# Revision History:
+# 20150129 - richarjt - initial version
+#
+
+SCRIPT=$(basename "$0")
+VERSION='$Revision: 1388 $'
+USECASE=1
+
+function usage {
+   cat <<EOF
+
+Usage:
+
+$SCRIPT [-i] expression
+   where:
+      expression is the expression you want to search the process list for
+      -i use case insensitive matching
+
+   matching processes are listed
+EOF
+  exit 1
+}
+
+while getopts ":hiV" OPT
+do
+  case $OPT in
+    h ) usage ;;
+    i ) USECASE=0 ;;
+    V ) echo "$SCRIPT VERSION: $(echo $VERSION | awk '{ print $2 }')"; exit 0 ;;
+    * ) echo "Unrecognized option $OPT" ;;
+  esac
+done
+shift $(($OPTIND - 1))
+
+OS=$(uname -s)
+
+case "$OS" in
+   Linux)
+     PS="ps axwwww"
+     ;;
+  SunOS)
+    if [ -x /usr/ucb/ps ]; then
+      PS="/usr/ucb/ps -axwww"
+    else
+      PS="ps -ef"
+    fi
+    ;;
+  HP-UX)
+    PS="ps -efx"
+    ;;
+  *)
+    PS="ps -ef"
+    ;;
+esac
+
+if [ -z "$1" ]
+then
+  usage
+fi
+
+if [ $USECASE -eq 0 ]
+then
+  FINALCMD='grep -i'
+else
+  FINALCMD='grep'
+fi
+
+$PS | grep -v grep | $FINALCMD "$1"

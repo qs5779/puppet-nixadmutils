@@ -1,0 +1,109 @@
+#!/bin/bash
+# -*- Mode: Bash; tab-width: 2; indent-tabs-mode: nil -*- vim:sta:et:sw=2:ts=2:syntax=sh
+#
+# Revision History:
+# 20160811 - que - initial version
+# 20171218 - que - corrected error messages, adusted version
+# 20171224 - que - cleanup tmp file
+#
+
+SCRIPT=$(basename "$0")
+VERSION='$Revision: 1.03 $'
+VERBOSE=0
+DEBUG=0
+ERRORS=0
+
+if [ -t 0 ]
+then
+  QUIET=0
+else
+  QUIET=1
+fi
+
+function usage {
+  cat << EOM
+usage: $SCRIPT [-d] [-h] [-q] [-v] [-V] file [file1 ...]
+  where:
+    -d specify debug mode
+    -h show this message and exit
+    -q run quietly
+    -v add verbosity
+    -V show version and exit
+
+    will append a line feed to file(s) if it does not end with one
+EOM
+  exit 1
+}
+
+while getopts ":dhqvV" opt
+do
+  case "$opt" in
+    d )
+      ((DEBUG+=1))
+      ((VERBOSE+=1))
+    ;;
+    h )
+      usage
+    ;;
+    q ) ((QUIET+=1)) ;;
+    v ) ((VERBOSE+=1)) ;;
+    V )
+      echo "$SCRIPT VERSION: $(echo $VERSION | awk '{ print $2 }')"
+      exit 0
+    ;;
+    * )
+      echo "Unexpected option \"$opt\""
+      usage
+    ;;
+  esac
+done
+shift $((OPTIND - 1))
+
+if [ -z "$1" ]
+then
+  echo "Missing required parameter!!!" >&2
+  usage
+fi
+
+TMPF=/tmp/${SCRIPT}.$$.tmp
+
+while [ -n "$1" ]
+do
+  SRC="$1"
+  shift
+  if [ -w "$SRC" ]
+  then
+    # remove all but last newline
+    sed -e :a -e '/^\n*$/{$d;N;};/\n$/ba' "$SRC" > "$TMPF"
+    if [ -n "$(tail -c 1 "$TMPF")" ]
+    then
+      echo >> "$TMPF"
+    fi
+    diff -q "$TMPF" "$SRC" > /dev/null
+    RC=$?
+    if [ $RC -ne 0 ]
+    then
+      if [ $RC -eq 1 ]
+      then
+        cp $B "$TMPF" "$SRC"
+        if [ $QUIET -eq 0 ]
+        then
+          echo -e "corrected line feeds at end of file: \033[31m$SRC\033[0m"
+        fi
+        rm -f "$TMPF"
+      else
+        if [ $QUIET -eq 0 ]
+        then
+          echo "diff $TMPF $SRC returned $RC. $SRC left unchanged."
+        fi
+      fi
+    fi
+  else
+    echo "File not (found|writable): $SRC" >&2
+    ERRORS=$((ERRORS+=1))
+  fi
+done
+
+rm -f $TMPF
+
+exit $ERRORS

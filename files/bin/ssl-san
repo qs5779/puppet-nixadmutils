@@ -1,0 +1,88 @@
+#!/bin/bash
+# -*- Mode: Bash; tab-width: 2; indent-tabs-mode: nil -*- vim:sta:et:sw=2:ts=2:syntax=sh
+# Revision History:
+# 20161008 - quiensabe - check extension
+# 20170519 - que - crl doesn't accept a DIGEST
+# 20170708 - que - support s switch in getopts
+#
+
+SCRIPT=$(basename "$0")
+VERSION='$Revision: 2526 $'
+VERBOSE=0
+DEBUG=0
+ERRORS=0
+DIGEST="-md5"
+
+function usage {
+  cat << EOM
+usage: $SCRIPT [-d] [-h] [-s] [-v] [-V] certfile.pem [ ... ]
+  where:
+    -d specify debug mode
+    -h show this message and exit
+    -s use sha1 ( default md5 )
+    -v add verbosity
+    -V show version and exit
+EOM
+  exit 1
+}
+
+while getopts ":dhsvV" opt
+do
+  case "$opt" in
+    d )
+      ((DEBUG+=1))
+      ((VERBOSE+=1))
+    ;;
+    h )
+      usage
+    ;;
+    s ) DIGEST="-sha1" ;;
+    v ) ((VERBOSE+=1)) ;;
+    V )
+      echo "$SCRIPT VERSION: $(echo $VERSION | awk '{ print $2 }')"
+      exit 0
+    ;;
+    * )
+      echo "Unexpected option \"$opt\""
+      usage
+    ;;
+  esac
+done
+shift $((OPTIND - 1))
+
+if [ -z "$1" ]
+then
+  usage
+fi
+
+while [ -n "$1" ]
+do
+  INFILE="$1"
+  shift
+
+  EXT="${INFILE##*.}"
+  EXT=$(echo $EXT | tr '[A-Z]' ['a-z'])
+  case "$EXT" in
+    csr )
+      SSLCMD=req
+    ;;
+    crl )
+      SSLCMD=crl
+      DIGEST=''
+    ;;
+    * )
+      SSLCMD=x509
+    ;;
+  esac
+
+  if [ -r "$INFILE" ]
+  then
+    openssl $SSLCMD -in "$INFILE" ${DIGEST} -noout -text | grep DNS
+  else
+    echo "File not (found|readable): $INFILE" >&2
+    ((ERRORS+=1))
+  fi
+done
+
+# ERRORS=$((ERRORS+=1)) # darn ubuntu default dash shell
+exit $ERRORS

@@ -1,0 +1,74 @@
+#!/bin/bash
+# -*- Mode: Bash; tab-width: 2; indent-tabs-mode: nil -*- vim:sta:et:sw=2:ts=2:syntax=sh
+#
+# $Id: ssl-serial 2123 2016-09-14 17:12:33Z jim $
+# $Date: 2016-09-14 13:12:33 -0400 (Wed, 14 Sep 2016) $
+# $HeadURL: svn+ssh://svn.wtfo-guru.com/var/lib/svn/wtfopuppet/branches/wip4/puppet/modules/usrlocal/files/bin/ssl-serial $
+#
+# Revision History:
+# YYYYmmdd - quiensabe - initial version
+#
+
+SCRIPT=$(basename "$0")
+VERSION='$Revision: 2123 $'
+VERBOSE=0
+DEBUG=0
+ERRORS=0
+DIGEST=md5
+
+function usage {
+  cat << EOM
+usage: $SCRIPT [-d] [-h] [-v] [-V] certfile.pem [ ... ]
+  where:
+    -d specify debug mode
+    -h show this message and exit
+    -v add verbosity
+    -V show version and exit
+EOM
+  exit 1
+}
+
+while getopts ":dhvV" opt
+do
+  case "$opt" in
+    d )
+      ((DEBUG+=1))
+      ((VERBOSE+=1))
+    ;;
+    h )
+      usage
+    ;;
+    v ) ((VERBOSE+=1)) ;;
+    V )
+      echo "$SCRIPT VERSION: $(echo $VERSION | awk '{ print $2 }')"
+      exit 0
+    ;;
+    * )
+      echo "Unexpected option \"$opt\""
+      usage
+    ;;
+  esac
+done
+shift $((OPTIND - 1))
+
+if [ -z "$1" ]
+then
+  usage
+fi
+
+while [ -n "$1" ]
+do
+  CERT="$1"
+  shift
+
+  if [ -r "$CERT" ]
+  then
+    openssl x509 -in "$CERT" -noout -serial
+  else
+    echo "File not (found|readable): $CERT" >&2
+    ((ERRORS+=1))
+  fi
+done
+
+# ERRORS=$((ERRORS+=1)) # darn ubuntu default dash shell
+exit $ERRORS

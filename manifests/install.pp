@@ -22,7 +22,13 @@ class nixadmutils::install {
     mode   => '0755',
   }
 
-  ['etc', 'bin', 'sbin'].each | String $dn | {
+  file { "${nixadmutils::nixadmutilsdir}/etc":
+    ensure => 'directory',
+    mode   => '0755',
+    require => File[$nixadmutils::nixadmutilsdir],
+  }
+
+  ['bin', 'sbin'].each | String $dn | {
 
     $group = $dn ? {
       'sbin'  => $nixadmutils::wheelgroup,
@@ -35,6 +41,7 @@ class nixadmutils::install {
       group              => $group,
       source_permissions => 'use_when_creating',
       source             => "puppet:///modules/nixadmutils/${dn}",
+      require            => File[$nixadmutils::nixadmutilsdir],
     }
   }
 }

@@ -1,0 +1,97 @@
+#!/bin/bash
+# -*- Mode: Bash; tab-width: 2; indent-tabs-mode: nil -*- vim:sta:et:sw=2:ts=2:syntax=sh
+# Revision History:
+# 20170519 - que - initial verison
+#
+
+SCRIPT=$(basename "$0")
+VERSION='$Revision: 1 $'
+VERBOSE=0
+DEBUG=0
+ERRORS=0
+ZONES=''
+DIRECT=0
+
+function usage {
+  cat << EOM
+usage: $SCRIPT [-D] [-d] [-h] [-v] [-V]
+  where:
+    -d specify debug mode
+    -D show direct
+    -h show this message and exit
+    -v add verbosity
+    -V show version and exit
+EOM
+  exit 1
+}
+
+function addzone {
+  typeset Z="$1"
+
+  if [ -z "$ZONES" ]
+  then
+    ZONES="$Z"
+  else
+    ZONES="$ZONES $Z"
+  fi
+}
+
+while getopts ":dDhvVz:" opt
+do
+  case "$opt" in
+    d )
+      ((DEBUG+=1))
+      ((VERBOSE+=1))
+      ((DIRECT+=1))
+    ;;
+    D )
+      ((DIRECT+=1))
+    ;;
+    h )
+      usage
+    ;;
+    v )
+      ((VERBOSE+=1))
+      ((DIRECT+=1))
+    ;;
+    V )
+      echo "$SCRIPT VERSION: $(echo $VERSION | awk '{ print $2 }')"
+      exit 0
+    ;;
+    z )
+      addzone "$OPTARG"
+    ;;
+    * )
+      echo "Unexpected option \"$opt\""
+      usage
+    ;;
+  esac
+done
+shift $((OPTIND - 1))
+
+if [ -z "$ZONES" ]
+then
+    #default to all active zones when not specified
+  ZONES=$(firewall-cmd --get-active-zones | grep '^[a-zA-Z]')
+fi
+
+if [ $DEBUG -ne 0 ]
+then
+    echo "ZONES: $ZONES"
+fi
+
+for zone in $ZONES
+do
+  firewall-cmd --zone=${zone} --list-all
+done
+
+if [ $DIRECT -ne 0 ]
+then
+  echo "Chains:"
+  firewall-cmd --direct --get-all-chains
+  echo "Chains:"
+  firewall-cmd --direct --get-all-rules
+fi
+
+# ERRORS=$((ERRORS+=1)) # darn ubuntu default dash shell
+exit $ERRORS

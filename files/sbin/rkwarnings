@@ -70,6 +70,6 @@ else
   PREFIX=''
 fi
 
-$PREFIX grep -A 1 "\[ Warning \]" "$RKHUNTERLOG"
+$PREFIX grep -A 1 -e "\[ Warning \]" -e "Warning:" "$RKHUNTERLOG"
 
 exit $ERRORS

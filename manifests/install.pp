@@ -23,8 +23,8 @@ class nixadmutils::install {
   }
 
   file { "${nixadmutils::nixadmutilsdir}/etc":
-    ensure => 'directory',
-    mode   => '0755',
+    ensure  => 'directory',
+    mode    => '0755',
     require => File[$nixadmutils::nixadmutilsdir],
   }
 
@@ -42,6 +42,15 @@ class nixadmutils::install {
       source_permissions => 'use_when_creating',
       source             => "puppet:///modules/nixadmutils/${dn}",
       require            => File[$nixadmutils::nixadmutilsdir],
+    }
+  }
+
+  $absents = [ "${nixadmutils::nixadmutilsdir}/bin/fw-list" ]
+
+  $absents.each | String $a | {
+
+    file { $a :
+      ensure => 'absent',
     }
   }
 }

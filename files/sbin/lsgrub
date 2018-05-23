@@ -1,12 +1,11 @@
 #!/bin/bash
 # -*- Mode: Bash; tab-width: 2; indent-tabs-mode: nil -*- vim:sta:et:sw=2:ts=2:syntax=sh
-#
 # Revision History:
-# 20180128 - quiensabe - initial version
+# 20180106 - que - initial version
 #
 
 SCRIPT=$(basename "$0")
-VERSION='$Revision: 0.1.1 $'
+VERSION='$Revision: 0.01 $'
 VERBOSE=0
 DEBUG=0
 ERRORS=0
@@ -46,29 +45,24 @@ do
 done
 shift $((OPTIND - 1))
 
-RCFILE=/opt/nixadmutils/etc/nixadmutils.rc
+GRUBCFG=/etc/grub2-efi.cfg
 
-if [ -r "$RCFILE" ]
+if [ ! -r "$GRUBCFG" ]
 then
-  . "$RCFILE"
+  GRUBCFG=/etc/grub2.cfg
+fi
+
+if [ -r "$GRUBCFG" ]
+then
+  awk -F\' '$1=="menuentry " {print i++ " : " $2}' "$GRUBCFG"
+  echo
+  grub2-editenv list
+  echo
+  echo "run \"grub2-set-default index ( where index is 0 based of list above )\" to change the default"
+  echo
 else
-  echo "File not (found|readable): $RCFILE" >&2
-  exit 1
+  ((ERRORS==1))
+  echo "File not (found|readable): $GRUBCFG" >&2
 fi
-
-if [ ! -f "$RKHUNTERLOG" ]
-then
-  echo "rkhunter.log not found: $RKHUNTERLOG" >&2
-  exit 1
-fi
-
-if [ "$(whoami)" != "root" ]
-then
-  PREFIX=sudo
-else
-  PREFIX=''
-fi
-
-$PREFIX grep -A 1 -e "\[ Warning \]" -e "Warning:" "$RKHUNTERLOG"
 
 exit $ERRORS

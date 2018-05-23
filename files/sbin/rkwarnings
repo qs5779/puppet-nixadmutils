@@ -69,6 +69,7 @@ else
   PREFIX=''
 fi
 
+$PREFIX grep 'Info: Start date' "$RKHUNTERLOG"
 $PREFIX grep -A 1 -e "\[ Warning \]" -e "Warning:" "$RKHUNTERLOG"
 
 exit $ERRORS

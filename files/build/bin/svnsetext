@@ -1,0 +1,53 @@
+#!/bin/bash
+# -*- Mode: Bash; tab-width: 2; indent-tabs-mode: nil -*- vim:sta:et:sw=2:ts=2:syntax=sh#
+#
+# Revision History
+#  20160609 - quiensabe - initial version
+#  20110111 - richarjt fixed svn propdel s
+#
+
+SCRIPT=$(basename "$0")
+VERSION='$Revision: 1938 $'
+VERBOSE=0
+
+function usage {
+  cat << EOM
+usage: $SCRIPT [-h] [-v] [-V] externals_definition_file ...
+  where:
+    -h show this message and exit
+    -v add verbosity
+    -V show version and exit
+EOM
+  exit 1
+}
+
+while getopts ":hvV" opt
+do
+  case "$opt" in
+    h )
+      usage
+      ;;
+    v ) ((VERBOSE+=1)) ;;
+    V )
+      echo "$SCRIPT VERSION: $(echo $VERSION | awk '{ print $2 }')"
+      exit 0
+      ;;
+    * )
+      echo "Unexpected option \"$opt\""
+      usage
+      ;;
+  esac
+done
+shift $(($OPTIND - 1))
+
+while [ -n "$1" ]
+do
+  if [ -f "$1" ]
+  then
+    SRC="$1"
+    svn propset svn:externals --file "$SRC" $(dirname "$SRC")
+  else
+    echo "File not found: $1"
+  fi
+  shift
+done

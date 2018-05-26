@@ -1,0 +1,58 @@
+#!/bin/bash
+# -*- Mode: Bash; tab-width: 2; indent-tabs-mode: nil -*- vim:sta:et:sw=2:ts=2:syntax=sh
+#
+# $Id: perllint 2263 2016-09-17 19:21:59Z jim $
+# $Date: 2016-09-17 15:21:59 -0400 (Sat, 17 Sep 2016) $
+# $HeadURL: svn+ssh://svn.wtfo-guru.com/var/lib/svn/wtfopuppet/branches/wip4/puppet/modules/usrlocal/files/bin/perllint $
+#
+# Revision History:
+# 20150126 - richarjt - initial version
+#
+
+ERRORS=0
+
+function usage {
+  cat << EOM
+usage: $SCRIPT [-h] [-L perl5lib] file [ file1 ... ]
+  where:
+    -h          - show this message and exit
+    -L perl5lib - specify additional @INC directory for test run.
+EOM
+  exit 1
+}
+
+while getopts ":hl:L:" opt
+do
+  case "$opt" in
+    h )
+      usage
+    ;;
+    l|L )
+      export PERL5LIB="$OPTARG"
+    ;;
+    * )
+      echo "Unexpected option \"$opt\""
+      usage
+    ;;
+  esac
+done
+shift $((OPTIND - 1))
+
+while [ -n "$1" ]
+do
+  if [ -r "$1" ]
+  then
+    #perl -Mstrict [-Mdiagnostics] -cw <file>
+    perl -Mstrict -cw $1
+    if [ $? -ne 0 ]
+    then
+      ((ERRORS+=1))
+    fi
+  else
+    echo "File not (found|readable): $1"
+    ((ERRORS+=1))
+  fi
+  shift
+done
+
+exit $ERRORS

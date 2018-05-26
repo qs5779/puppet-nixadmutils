@@ -1,0 +1,10 @@
+#!/bin/bash
+# -*- Mode: Bash; tab-width: 2; indent-tabs-mode: nil -*- vim:sta:et:sw=2:ts=2:syntax=sh#
+#
+# Revision History
+#  20150822 - richarjt - initial version
+#
+
+SCRDIR=$(dirname "$0")
+
+svn status "$@" | sed -e 's/\\/\//g'

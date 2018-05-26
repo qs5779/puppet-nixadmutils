@@ -1,0 +1,33 @@
+#!/bin/bash
+# -*- Mode: Bash; tab-width: 2; indent-tabs-mode: nil -*- vim:sta:et:sw=2:ts=2:syntax=sh
+#
+# $Id: bashlint 1388 2016-07-02 17:54:43Z jim $
+# $Date: 2016-07-02 13:54:43 -0400 (Sat, 02 Jul 2016) $
+# $HeadURL: svn+ssh://svn.wtfo-guru.com/var/lib/svn/wtfopuppet/branches/wip4/puppet/modules/usrlocal/files/bin/bashlint $
+#
+# Revision History:
+# 20150126 - richarjt - initial version
+# 20150228 - richarjt - bash does not support -w
+#
+
+ERRORS=0
+
+while [ -n "$1" ]
+do
+  if [ -r "$1" ]
+  then
+    bash -n -c $1
+    if [ $? -ne 0 ]
+    then
+      ((ERRORS+=1))
+    else
+      echo "$1 syntax OK"
+    fi
+  else
+    echo "File not (found|readable): $1"
+    ((ERRORS+=1))
+  fi
+  shift
+done
+
+exit $ERRORS

@@ -1,0 +1,93 @@
+#!/bin/bash
+# -*- Mode: Bash; tab-width: 2; indent-tabs-mode: nil -*- vim:sta:et:sw=2:ts=2:syntax=sh#
+#
+# Revision History
+#  20150510 - richarjt - initial version
+#
+
+SCRIPT=$(basename "$0")
+VERSION='$Revision: 1938 $'
+VERBOSE=0
+EXECUTE=0
+
+function usage {
+  cat << EOM
+usage: $SCRIPT [-h] [-v] [-V]
+  where:
+    -h show this message and exit
+    -v add verbosity
+    -V show version and exit
+    -x set svn:executable ( default: removes it )
+EOM
+	exit 1
+}
+
+while getopts ":hvVx" opt
+do
+  case "$opt" in
+    h )
+      usage
+      ;;
+    v ) ((VERBOSE+=1)) ;;
+    V )
+      echo "$SCRIPT VERSION: $(echo $VERSION | awk '{ print $2 }')"
+      exit 0
+      ;;
+    x ) EXECUTE=1 ;;
+    * )
+      echo "Unexpected option \"$opt\""
+      usage
+      ;;
+  esac
+done
+shift $(($OPTIND - 1))
+
+if [ -f "$1" ]; then
+  while [ -f "$1" ]
+  do
+    TARGET="$1"
+    shift
+    EOLSET=0
+    CURPROPS=$(svn proplist "$TARGET")
+    for p in svn:keywords svn:eol-style
+    do
+      FOUND=$(echo "$CURPROPS" | grep "$p")
+      if [ -z "$FOUND" ]
+      then
+        case "$p" in
+          svn:keywords )
+            svn propset svn:keywords "Id Author Date HeadURL Revision" "$TARGET"
+          ;;
+          svn:eol-style )
+            svn propset svn:eol-style CRLF "$TARGET"
+            EOLSET=1
+          ;;
+        esac
+      fi
+    done
+    if [ $EOLSET -eq 0 ]
+    then
+      FOUND=$(svn propget svn:eol-style "$TARGET")
+      if [ "$FOUND" != "CRLF" ]
+      then
+        svn propset svn:eol-style CRLF "$TARGET"
+      fi
+    fi
+    FOUND=$(echo "$CURPROPS" | grep "svn:executable")
+    if [ $EXECUTE -eq 0 ]
+    then
+      if [ -n "$FOUND" ]
+      then
+        svn propdel svn:executable "$TARGET"
+      fi
+      chmod u-x,g-x,o-x "$TARGET"
+    else
+      if [ -z "$FOUND" ]
+      then
+        svn propset svn:executable '' "$TARGET"
+      fi
+    fi
+  done
+else
+  echo "File not found: $1"
+fi

@@ -24,6 +24,8 @@ usage: $SCRIPT [-d] [-h] [-v] [-V] certfile.pem [ ... ]
     -h show this message and exit
     -v add verbosity
     -V show version and exit
+
+    show the dates of a ssl certificate
 EOM
   exit 1
 }

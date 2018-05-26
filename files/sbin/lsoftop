@@ -1,27 +1,26 @@
 #!/bin/bash
 # -*- Mode: Bash; tab-width: 2; indent-tabs-mode: nil -*- vim:sta:et:sw=2:ts=2:syntax=sh
-#
 # Revision History:
-# 20160914 - quiensabe - initial version
+# 20170719 - que - initial version
 #
 
 SCRIPT=$(basename "$0")
-VERSION='$Revision: 2123 $'
+VERSION='$Revision: 2.0.0 $'
 VERBOSE=0
-DEBUG=0
+DEBUG=""
 ERRORS=0
-DIGEST=md5
 
 function usage {
   cat << EOM
-usage: $SCRIPT [-d] [-h] [-v] [-V] certfile.pem [ ... ]
+usage: $SCRIPT [-d] [-h] [-v] [-V]
   where:
     -d specify debug mode
     -h show this message and exit
     -v add verbosity
     -V show version and exit
 
-    show the serial number of a ssl certificate
+    show 20 pids from lsof in revrse order
+    I can't for my life remeber why i wanted or needed this
 EOM
   exit 1
 }
@@ -30,7 +29,7 @@ while getopts ":dhvV" opt
 do
   case "$opt" in
     d )
-      ((DEBUG+=1))
+      DEBUG=--debug
       ((VERBOSE+=1))
     ;;
     h )
@@ -49,24 +48,9 @@ do
 done
 shift $((OPTIND - 1))
 
-if [ -z "$1" ]
-then
-  usage
-fi
+TMPFIL=/tmp/fosl.$$
 
-while [ -n "$1" ]
-do
-  CERT="$1"
-  shift
-
-  if [ -r "$CERT" ]
-  then
-    openssl x509 -in "$CERT" -noout -serial
-  else
-    echo "File not (found|readable): $CERT" >&2
-    ((ERRORS+=1))
-  fi
-done
-
-# ERRORS=$((ERRORS+=1)) # darn ubuntu default dash shell
-exit $ERRORS
+lsof > $TMPFIL
+cat $TMPFIL| awk '{ print $2 " " $1; }' | sort -rn | uniq -c | sort -rn | head -20
+echo "view all output in: $TMPFIL"
+exit $?

@@ -13,7 +13,7 @@ class nixadmutils::config {
   file { "${cfgdir}/nixadmutils.rc":
     ensure  => 'file',
     mode    => '0644',
-    content  => template('nixadmutils/nixadmutils.rc.erb'),
+    content => template('nixadmutils/nixadmutils.rc.erb'),
     require => File[$cfgdir],
   }
 }

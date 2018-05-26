@@ -1,0 +1,250 @@
+#!/usr/bin/perl -w
+# -*- Mode: Perl; tab-width: 2; indent-tabs-mode: nil -*- vim:sta:et:sw=2:ts=2:syntax=perl
+#
+# $Id: getProperty 1388 2016-07-02 17:54:43Z jim $
+# $Date: 2016-07-02 13:54:43 -0400 (Sat, 02 Jul 2016) $
+# $HeadURL: svn+ssh://svn.wtfo-guru.com/var/lib/svn/wtfopuppet/branches/wip4/puppet/modules/usrlocal/files/bin/getProperty $
+#
+# Revision History:
+#  20130201 - richarjt - initial version
+#  20130718 - wilkinba - TaskID: 1185 - Update to dependency
+#  20140506 - richarjt - TaskID: 2340 - support -m marker parameter
+#  20140509 - richarjt - TaskId: 2340 - remove carriage returns values in case file is dos style
+#  20140626 - richarjt - TaskID: 2492 - support a -m no|none to NOT mark the file
+#
+
+use strict;
+use File::Basename qw/ basename dirname /;
+use Getopt::Long;
+use Pod::Usage;
+
+my $basenm = basename( "$0" );
+my $SCRDIR = dirname( "$0" );
+
+my $add     = 0;
+my $get     = 0;
+my $debug   = 0;
+my $filenm  = 0;
+my $key     = 0;
+my $remove  = 0;
+my $value   = 0;
+my $man     = 0;
+my $help    = 0;
+my $version = 0;
+
+Getopt::Long::Configure( "bundling" );
+
+GetOptions(
+  'a|add'           => \$add,
+  'd|debug'         => sub { $debug++ },
+  'f|file=s'        => \$filenm,
+  'g|get'           => \$get,
+  'k|key=s'         => \$key,
+  'r|remove'        => \$remove,
+  's|set'           => sub { $get = 0 },
+  'v|value=s'       => \$value,
+  'V|Version'       => \$version,
+  'man'             => \$man,
+  'h|help|?'        => \$help
+) or pod2usage( 2 );
+
+pod2usage( 1 ) if $help;
+pod2usage( -exitstatus => 0, -verbose => 2 ) if $man;
+
+my $VERSION = '$Revision: 1388 $';
+
+if ( $version ) {
+  $VERSION =~ s/\$//g;
+  print "$basenm $VERSION\n";
+  exit( 0 );
+}
+
+if ( !$filenm ) {
+  $filenm = $ARGV[ 0 ];
+  if ( !$filenm ) {
+    pod2usage( 1 );
+  }
+}
+
+if ( !$key ) {
+  print STDERR "-k key is a required parameter.\n\n";
+  pod2usage( 1 );
+}
+
+if ( !$get && $basenm =~ /^getProperty$/ ) {
+  $get = 1;
+}
+
+if ( !$get && !$value && !$remove ) {
+  print STDERR "Must supply a value when setting.\n\n";
+  pod2usage( 1 );
+}
+
+if ( $get && !-r $filenm ) {
+  die( sprintf 'File not (found|readable): %s', $filenm );
+}
+elsif ( !$get && !-w $filenm ) {
+  die( sprintf 'File not (found|writable): %s', $filenm );
+}
+if ( $get && ( $add | $remove ) ) {
+  print STDERR "The get flag cannot be used with the add or remove flag\n\n";
+  pod2usage( 1 );
+}
+
+my $dirty = 0;
+my $tmpnm = 0;
+my $lines = 0;
+
+print "Opening $filenm\n" if ( $debug );
+if ( open( PROPF, "< $filenm" ) ) {
+  if ( !$get ) {
+    $tmpnm = sprintf '/tmp/%s.%d', $basenm, $$;
+    if ( !open( TMPF, ">$tmpnm" ) ) {
+      die( sprintf 'Failed to open "%s" for writing. Reason: %s', $tmpnm, $! );
+    }
+  }
+  my $line;
+  my $existing;
+  my $comment = 0;
+  my $found   = 0;
+
+  while ( $line = <PROPF> ) {
+    $lines++;
+    if ( $line =~ /^${key}\s*=(.*)/ ) {
+      $found++;
+      $existing = $1;
+
+      chomp( $existing );
+      $existing =~ s/\r//g;    # darn developers don't realize all their code is on *nix systems oh well
+      $existing =~ s/^\s//;
+      $existing =~ s/\s$//;
+      $comment = 0;
+      if ( $existing =~ s/(#.*)$// ) {
+        $comment = $1;
+        $existing =~ s/#.*$//;
+      }
+      if ( $get ) {
+        printf "%s\n", $existing;
+        if ( $comment && $debug ) {
+          printf "comment: %s\n", $comment;
+        }
+        printf "Closing %s after processing %d lines.\n", $filenm, $lines if ( $debug );
+        close( PROPF );
+        exit( 0 );
+      }
+      else {
+        if ( $remove ) {
+          $dirty++;
+          next;
+        }
+
+        if ( $value ne $existing ) {
+          if ( $comment ) {
+            $line = sprintf "%s=%s %s\n", $key, $value, $comment;
+          }
+          else {
+            $line = sprintf "%s=%s\n", $key, $value;
+          }
+          $dirty++;
+        }
+      }
+    }
+    else {
+      print $line if ( $debug > 1 );
+    }
+
+    if ( !$get ) {
+      print TMPF $line;
+    }
+  }
+
+  printf "Closing %s after processing %d lines.\n", $filenm, $lines if ( $debug );
+  close( PROPF );
+  if ( $tmpnm ) {
+
+    #printf "found: %d add: %d.\n", $found, $add if($debug);
+    if ( !$found && $add ) {
+
+      # lead with newline just in case orig file did not end with newline better safe than sorry
+      printf TMPF "\n%s=%s\n", $key, $value;
+      $dirty++;
+    }
+    printf "Closing %s after processing %d lines.\n", $tmpnm, $lines if ( $debug );
+    close( TMPF );
+  }
+
+  if ( $dirty ) {
+    my $cmd;
+
+    $cmd = sprintf 'cp %s %s', $tmpnm, $filenm;
+    qx($cmd);
+  }
+
+  unlink( $tmpnm ) if ( -f $tmpnm && !$debug );
+}
+else {
+  die( sprintf 'Failed to open "%s" for reading. Reason: %s', $filenm, $! );
+}
+
+__END__
+
+=head1 NAME
+
+setProperty/getProperty - perl script to set or get a property from a properties file
+
+=head1 SYNOPSIS
+
+setProperty/getProperty [-d] [-h] [-v value] [-V] -f propertyfile -k key
+
+  perl script to set or get a property from a properties file
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<-a|--add>
+
+  If setting and property does not exist then add it.
+
+=item B<-d|--debug>
+
+  Sets debug flag to show more output.
+
+=item B<-f|--file>
+
+  Specify property file.
+
+=item B<-g|--get>
+
+  Specify property get instead of set. Implied when called as "getProperty"
+
+=item B<-h|--help>
+
+  Print a brief help message and exits.
+
+=item B<-k|--key>
+
+  Specify property name to act upon.
+
+=item B<-m|--mark|--marker>
+
+Specifies the name of the script that changed the file being marked. (default is scriptname)
+
+=item B<-r|--remove>
+
+  Remove specified property.
+
+=item B<-s|--set>
+
+  Specify property set instead of get. Implied when called as "setProperty"
+
+=item B<-v|--value>
+
+  Specify value when setting ( or adding ) a property.
+
+=item B<-V|--version> [directory to extract to}
+
+  Prints version and exits
+
+
+=back

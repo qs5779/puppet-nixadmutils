@@ -2,26 +2,25 @@
 # -*- Mode: Bash; tab-width: 2; indent-tabs-mode: nil -*- vim:sta:et:sw=2:ts=2:syntax=sh
 #
 # Revision History:
-# 20160914 - quiensabe - initial version
+# 20160825 - quiensabe - initial version
+# 20160901 - quiensabe - capture stderr in tee
+# 20161005 - quiensabe - ensure puppet path
 #
 
 SCRIPT=$(basename "$0")
-VERSION='$Revision: 2123 $'
+VERSION='$Revision: 2575 $'
 VERBOSE=0
-DEBUG=0
+DEBUG=""
 ERRORS=0
-DIGEST=md5
 
 function usage {
   cat << EOM
-usage: $SCRIPT [-d] [-h] [-v] [-V] certfile.pem [ ... ]
+usage: $SCRIPT [-d] [-h] [-v] [-V]
   where:
     -d specify debug mode
     -h show this message and exit
     -v add verbosity
     -V show version and exit
-
-    show the serial number of a ssl certificate
 EOM
   exit 1
 }
@@ -30,7 +29,7 @@ while getopts ":dhvV" opt
 do
   case "$opt" in
     d )
-      ((DEBUG+=1))
+      DEBUG=--debug
       ((VERBOSE+=1))
     ;;
     h )
@@ -49,24 +48,25 @@ do
 done
 shift $((OPTIND - 1))
 
-if [ -z "$1" ]
+PUPPET=/opt/puppetlabs/bin/puppet
+if [ ! -x "$PUPPET" ]
 then
-  usage
+  PUPPET=/usr/bin/puppet
+  if [ ! -x "$PUPPET" ]
+  then
+    echo "Failed to find the puppet binary!!!" >&2
+    exit 1
+  fi
 fi
 
-while [ -n "$1" ]
-do
-  CERT="$1"
-  shift
+#puppet agent --test 2>&1 | tee ${HOME}/agent.out
+sudo $PUPPET agent $DEBUG --test > >(tee ${HOME}/agent.out) 2> >(tee ${HOME}/agent.err >&2)
 
-  if [ -r "$CERT" ]
-  then
-    openssl x509 -in "$CERT" -noout -serial
-  else
-    echo "File not (found|readable): $CERT" >&2
-    ((ERRORS+=1))
-  fi
-done
+echo "stdout saved in  ${HOME}/agent.out"
 
-# ERRORS=$((ERRORS+=1)) # darn ubuntu default dash shell
-exit $ERRORS
+if [ -s ${HOME}/agent.err ]
+then
+  cat ${HOME}/agent.err
+fi
+
+exit $?

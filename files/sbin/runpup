@@ -61,12 +61,17 @@ fi
 
 #puppet agent --test 2>&1 | tee ${HOME}/agent.out
 sudo $PUPPET agent $DEBUG --test > >(tee ${HOME}/agent.out) 2> >(tee ${HOME}/agent.err >&2)
-
+RC=$?
 echo "stdout saved in  ${HOME}/agent.out"
+
+if [ $RC -ne 0 ]
+then
+  echo "the puppet agent run exited with $RC"
+fi
 
 if [ -s ${HOME}/agent.err ]
 then
   cat ${HOME}/agent.err
 fi
 
-exit $?
+exit $RC

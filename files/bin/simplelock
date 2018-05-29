@@ -1,0 +1,83 @@
+#!/bin/sh
+# -*- Mode: Bash; tab-width: 2; indent-tabs-mode: nil -*- vim:sta:et:sw=2:ts=2:syntax=sh
+#
+# __BUILD_CHECKPOINT_BEFORE_ARTIFACT_BUNDLE__ - do not modify this line, at build time it will get modified with current checkpoint
+#
+# Expounded upon logic from:
+# Advanced Shell Scripting - http://members.toast.net/art.ross/rute/node24.html#SECTION002470000000000000000
+#
+# Revision History
+#  20180529 - que - initial version
+#
+SCRIPT=$(basename "$0")
+QUIET=0
+VERSION='Revision: 1.0.0 '
+
+function usage {
+   cat <<EOF
+
+Usage:
+
+  $SCRIPT [-q] [-h] [-v] lockfilename pid
+   where:
+    -q - run quietly ( no output )
+    -h - show this usage and exit
+    -v - show version and exit
+
+    lockfilename - path and name of file ( success will append .lock to this
+                   if you send .lock extension in lockfilename it is stripped
+                   before the append)
+    pid - pid of process requesting the lock
+EOF
+  exit 1
+}
+
+while getopts ":hqvV" OPT
+do
+  case $OPT in
+    h ) usage ;;
+    q ) QUIET=$((QUIET+=1)) ;;
+    v|V ) echo "$SCRIPT VERSION: $(echo $VERSION | awk '{ print $2 }')"; exit 0 ;;
+    * ) if [ $QUIET -eq 0 ] ; then echo "Unrecognized option $OPT" ; fi ;;
+  esac
+done
+shift $(($OPTIND - 1))
+
+if [ -z "$1" -o -z "$2" ]
+then
+  usage
+fi
+
+case "$(uname -s)" in
+  Linux)
+    KILLZERO="kill -s 0"
+    ;;
+    *)
+    KILLZERO="kill -0"
+    ;;
+esac
+
+LOCKNAME=${1%%.lock}
+TEMPFILE="${LOCKNAME}.${2}"
+LOCKFILE="${LOCKNAME}.lock"
+
+echo $2 > $TEMPFILE 2> /dev/null || {
+  if [ $QUIET -eq 0 ] ; then echo "You don't have permission to access $(dirname $TEMPFILE)" ; fi
+  exit 1
+}
+ln $TEMPFILE $LOCKFILE > /dev/null 2>&1 && {
+  rm -f $TEMPFILE
+  exit 0
+}
+$KILLZERO $(cat $LOCKFILE) > /dev/null 2>&1 && {
+  rm -f $TEMPFILE
+  exit 1
+}
+if [ $QUIET -eq 0 ] ; then echo "Removing stale lock file" ; fi
+rm -f $LOCKFILE
+ln $TEMPFILE $LOCKFILE > /dev/null 2>&1 && {
+  rm -f $TEMPFILE
+  exit 0
+}
+rm -f $TEMPFILE
+exit 1

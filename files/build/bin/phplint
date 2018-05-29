@@ -1,0 +1,29 @@
+#!/bin/bash
+# -*- Mode: Bash; tab-width: 2; indent-tabs-mode: nil -*- vim:sta:et:sw=2:ts=2:syntax=sh
+#
+# Revision History:
+# 20150126 - richarjt - initial version
+#
+
+ERRORS=0
+
+while [ -n "$1" ]
+do
+  SRC="$1"
+  shift
+  if [ -r "$SRC" ]
+  then
+    php -l "$SRC"
+    if [ $? -ne 0 ]
+    then
+      ((ERRORS+=1))
+    else
+      echo "$SRC syntax OK"
+    fi
+  else
+    echo "File not (found|readable): $SRC"
+    ((ERRORS+=1))
+  fi
+done
+
+exit $ERRORS

@@ -2,26 +2,23 @@
 # -*- Mode: Bash; tab-width: 2; indent-tabs-mode: nil -*- vim:sta:et:sw=2:ts=2:syntax=sh
 #
 # Revision History:
-# 20160914 - quiensabe - initial version
+# 20180526 - quiensabe - initial version
 #
 
 SCRIPT=$(basename "$0")
-VERSION='$Revision: 2123 $'
+VERSION='$Revision: 0.1.1 $'
 VERBOSE=0
 DEBUG=0
 ERRORS=0
-DIGEST=md5
 
 function usage {
   cat << EOM
-usage: $SCRIPT [-d] [-h] [-v] [-V] certfile.pem [ ... ]
+usage: $SCRIPT [-d] [-h] [-v] [-V]
   where:
     -d specify debug mode
     -h show this message and exit
     -v add verbosity
     -V show version and exit
-
-    show the serial number of a ssl certificate
 EOM
   exit 1
 }
@@ -49,24 +46,27 @@ do
 done
 shift $((OPTIND - 1))
 
-if [ -z "$1" ]
+if [ "$(whoami)" != "root" ]
 then
-  usage
+  PREFIX=sudo
+else
+  PREFIX=''
 fi
 
-while [ -n "$1" ]
-do
-  CERT="$1"
-  shift
+FAM=$(facter osfamily)
 
-  if [ -r "$CERT" ]
-  then
-    openssl x509 -in "$CERT" -noout -serial
-  else
-    echo "File not (found|readable): $CERT" >&2
+case "$FAM" in
+  Debian )
+    $PREFIX apt update
+    $PREFIX apt upgrade
+  ;;
+  RedHat )
+    $PREFIX yum update
+  ;;
+  * )
+    echo "Unsupported osfamily: $FAM" >&2
     ((ERRORS+=1))
-  fi
-done
+  ;;
+esac
 
-# ERRORS=$((ERRORS+=1)) # darn ubuntu default dash shell
 exit $ERRORS

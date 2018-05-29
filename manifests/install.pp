@@ -28,7 +28,7 @@ class nixadmutils::install {
     require => File[$nixadmutils::nixadmutilsdir],
   }
 
-  ['bin', 'sbin'].each | String $dn | {
+  ['bin', 'sbin', 'build'].each | String $dn | {
 
     $group = $dn ? {
       'sbin'  => $nixadmutils::wheelgroup,
@@ -42,6 +42,19 @@ class nixadmutils::install {
       source_permissions => 'use_when_creating',
       source             => "puppet:///modules/nixadmutils/${dn}",
       require            => File[$nixadmutils::nixadmutilsdir],
+    }
+  }
+
+  $sbin = "${nixadmutils::nixadmutilsdir}/sbin"
+
+  $links = {
+    "${sbin}/lspuppet" => 'puppet-ls'
+  }
+
+  $links.each | String $l, String $t | {
+    file { $l:
+      ensure => 'link',
+      target => $t,
     }
   }
 

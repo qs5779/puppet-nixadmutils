@@ -1,0 +1,26 @@
+#!/bin/ksh
+# -*- Mode: Bash; tab-width: 2; indent-tabs-mode: nil -*- vim:sta:et:sw=2:ts=2:syntax=sh
+#
+# Revision History:
+# 20150126 - richarjt - initial version
+# 20150228 - richarjt - -w not supported on my ksh's
+#
+while [ -n "$1" ]
+do
+  if [ -r "$1" ]
+  then
+    ksh -n $1
+    if [ $? -ne 0 ]
+    then
+      ((ERRORS+=1))
+    else
+      echo "$1 syntax OK"
+    fi
+  else
+    echo "File not (found|readable): $1"
+    ((ERRORS+=1))
+  fi
+  shift
+done
+
+exit $ERRORS

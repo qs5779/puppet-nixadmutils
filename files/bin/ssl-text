@@ -22,6 +22,8 @@ usage: $SCRIPT [-d] [-h] [-s] [-v] [-V] certfile.pem [ ... ]
     -s use sha1 ( default md5 )
     -v add verbosity
     -V show version and exit
+
+    display a ssl certificate in text format
 EOM
   exit 1
 }

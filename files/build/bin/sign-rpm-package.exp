@@ -1,0 +1,28 @@
+#!/usr/bin/expect
+# -*- Mode: Expect; tab-width: 2; indent-tabs-mode: nil -*- vim:sta:et:sw=2:ts=2:syntax=exp
+#
+# Revision History:
+# 20150626 - quiensabe - updated header
+# 20160907 - quiensabe - credentials in a file
+# 20171218 - quiensabe - added exit codes, test creds exists/readable
+# 20171219 - quiensabe - tcl syntax error grrrr
+#
+
+set f [lindex $argv 0]
+set creds "$env(HOME)/.rpmsigncreds"
+
+if {[file readable $creds]} {
+
+  set fp [open $creds r]
+  set p [read $fp]
+
+  spawn rpm --resign $f
+  expect "Enter pass phrase:"
+  send -- "$p\r"
+  expect eof
+} else {
+  puts stderr "Credentials not found!!"
+  exit 1
+}
+
+exit 0

@@ -1,0 +1,25 @@
+#!/usr/bin/env python
+
+# print all occurences of well formed IPv6 addresses in stdin to stdout. The IPv6 addresses should not overlap or be adjacent to eachother.
+
+import sys
+import re
+
+# lookbehinds/aheads to prevent matching e.g. 2a00:cd8:d47b:bcdf:f180:132b:8c49:a382:bcdf:f180
+regex = re.compile(r'''
+            (?<![a-z0-9])(?<![a-z0-9]:)
+            ([a-f0-9]{0,4}::?)([a-f0-9]{1,4}(::?[a-f0-9]{1,4}){0,6})?
+            (?!:?[a-z0-9])''',
+        re.I | re.X)
+
+for l in sys.stdin:
+    for match in regex.finditer(l):
+        match = match.group(0)
+        colons = match.count(':')
+        dcolons = match.count('::')
+        if dcolons == 0 and colons == 7:
+            print match
+        elif dcolons == 1 and colons <= 7:
+            print match
+
+sys.stdout.flush()

@@ -1,0 +1,21 @@
+#!/bin/bash
+# -*- Mode: Bash; tab-width: 2; indent-tabs-mode: nil -*- vim:sta:et:sw=2:ts=2:syntax=sh#
+#
+
+if [ -d .git ]
+then
+  while [ -n "$1" ]
+  do
+    P="$1"
+    shift
+
+    if [ -a "$P" ]
+    then
+      git checkout --theirs "$P"
+      git add "$P"
+    fi
+  done
+else
+  echo "Dorothy, you aren't in a git repo anymore!!!"
+  exit 1
+fi

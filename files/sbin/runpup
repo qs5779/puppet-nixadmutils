@@ -10,30 +10,44 @@
 SCRIPT=$(basename "$0")
 VERSION='$Revision: 2575 $'
 VERBOSE=0
-DEBUG=""
+OPTIONS='--test'
 ERRORS=0
 
 function usage {
   cat << EOM
-usage: $SCRIPT [-d] [-h] [-v] [-V]
+usage: $SCRIPT [-d] [-h] [-n] [-v] [-V]
   where:
     -d specify debug mode
     -h show this message and exit
+    -n specify dry-run/noop mode
     -v add verbosity
     -V show version and exit
 EOM
   exit 1
 }
 
-while getopts ":dhvV" opt
+function add_option {
+
+  if [ -n "$OPTIONS" ]
+  then
+    OPTIONS="$OPTIONS $1"
+  else
+    OPTIONS="$1"
+  fi
+}
+
+while getopts ":dhnvV" opt
 do
   case "$opt" in
     d )
-      DEBUG=--debug
+      add_option "--debug"
       ((VERBOSE+=1))
     ;;
     h )
       usage
+    ;;
+    n )
+      add_option "--noop"
     ;;
     v ) ((VERBOSE+=1)) ;;
     V )
@@ -60,7 +74,7 @@ then
 fi
 
 #puppet agent --test 2>&1 | tee ${HOME}/agent.out
-sudo $PUPPET agent $DEBUG --test > >(tee ${HOME}/agent.out) 2> >(tee ${HOME}/agent.err >&2)
+sudo $PUPPET agent $OPTIONS > >(tee ${HOME}/agent.out) 2> >(tee ${HOME}/agent.err >&2)
 RC=$?
 echo "stdout saved in  ${HOME}/agent.out"
 

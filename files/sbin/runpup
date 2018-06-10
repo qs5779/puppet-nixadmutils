@@ -8,7 +8,7 @@
 #
 
 SCRIPT=$(basename "$0")
-VERSION='$Revision: 2575 $'
+VERSION='Revision: 2.0.0'
 VERBOSE=0
 OPTIONS='--test'
 ERRORS=0
@@ -74,7 +74,10 @@ then
 fi
 
 #puppet agent --test 2>&1 | tee ${HOME}/agent.out
-sudo $PUPPET agent $OPTIONS > >(tee ${HOME}/agent.out) 2> >(tee ${HOME}/agent.err >&2)
+COMMAND="sudo $PUPPET agent $OPTIONS"
+echo "$SCRIPT: $VERSION"
+echo "executing: $COMMAND"
+$COMMAND > >(tee ${HOME}/agent.out) 2> >(tee ${HOME}/agent.err >&2)
 RC=$?
 echo "stdout saved in  ${HOME}/agent.out"
 

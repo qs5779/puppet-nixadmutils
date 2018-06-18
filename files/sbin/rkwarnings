@@ -1,75 +1,144 @@
-#!/bin/bash
-# -*- Mode: Bash; tab-width: 2; indent-tabs-mode: nil -*- vim:sta:et:sw=2:ts=2:syntax=sh
+#!/usr/bin/ruby
+# -*- Mode: Ruby; tab-width: 2; indent-tabs-mode: nil -*- vim:sta:et:sw=2:ts=2:syntax=ruby
 #
 # Revision History:
-# 20180128 - quiensabe - initial version
+# YYYYmmdd - whoami - initial version
 #
+require 'getoptlong'
 
-SCRIPT=$(basename "$0")
-VERSION='$Revision: 0.1.1 $'
-VERBOSE=0
-DEBUG=0
-ERRORS=0
+basenm = File.basename( $0 )
+SCRDIR = File.dirname( $0 )
 
-function usage {
-  cat << EOM
-usage: $SCRIPT [-d] [-h] [-v] [-V]
+# TODO: convert below perl to ruby
+
+debug = 0
+verbose = 0
+
+ERRORS = 0
+VERSION = '$Revision: 24951 $'
+
+opts = GetoptLong.new(
+  [ '--debug', '-d', GetoptLong::NO_ARGUMENT ],
+  [ '--verbose', '-v', GetoptLong::NO_ARGUMENT ],
+  [ '--version', '-V', GetoptLong::NO_ARGUMENT ],
+  [ '--help', '--man', '-h', GetoptLong::NO_ARGUMENT ],
+#  [ '--repeat', '-n', GetoptLong::REQUIRED_ARGUMENT ],
+#  [ '--name', GetoptLong::OPTIONAL_ARGUMENT ]
+)
+
+opts.each do |opt, arg|
+  case opt
+    when '--help'
+      puts <<-EOM
+usage: #{basenm} [-d] [-h] [-v] [-V]
   where:
     -d specify debug mode
     -h show this message and exit
     -v add verbosity
     -V show version and exit
 EOM
-  exit 1
-}
-
-while getopts ":dhvV" opt
-do
-  case "$opt" in
-    d )
-      ((DEBUG+=1))
-      ((VERBOSE+=1))
-    ;;
-    h )
-      usage
-    ;;
-    v ) ((VERBOSE+=1)) ;;
-    V )
-      echo "$SCRIPT VERSION: $(echo $VERSION | awk '{ print $2 }')"
       exit 0
-    ;;
-    * )
-      echo "Unexpected option \"$opt\""
-      usage
-    ;;
-  esac
-done
-shift $((OPTIND - 1))
+    when '--version'
+      puts "#{basenm} #{VERSION[/\d+/]}"
+      exit 0
+    when '--verbose'
+      debug += 1
+    when '--debug'
+      verbose += 1
+  end
+end
 
-RCFILE=/opt/nixadmutils/etc/nixadmutils.rc
+# Loads properties from a file with lines formatted as 'key=value' into a Hash.
+# Comments (lines starting with #) are skipped, as are lines starting with =.
+# Empty property values (lines ending with =) and property values
+# containing = are included in the Hash.
 
-if [ -r "$RCFILE" ]
-then
-  . "$RCFILE"
+def load_properties(properties_filename)
+  properties = {}
+  File.open(properties_filename, 'r') do |properties_file|
+    properties_file.read.each_line do |line|
+      line.strip!
+      if (line[0] != ?# and line[0] != ?=)
+        i = line.index('=')
+        if ! i.nil?
+          properties[line[0..i - 1].strip] = line[i + 1..-1].strip
+        end
+      end
+    end
+  end
+  properties
+end
+
+RCFILE = '/opt/nixadmutils/etc/nixadmutils.rc'
+
+if File.readable?(RCFILE)
+  phash = load_properties(RCFILE)
 else
-  echo "File not (found|readable): $RCFILE" >&2
+  STDERR.puts "File not (found|readable): #{RCFILE}"
   exit 1
-fi
+end
 
-if [ ! -f "$RKHUNTERLOG" ]
-then
-  echo "rkhunter.log not found: $RKHUNTERLOG" >&2
-  exit 1
-fi
+myos=`facter osfamily`
 
-if [ "$(whoami)" != "root" ]
-then
-  PREFIX=sudo
+case myos
+when 'Debian'
+  defrkhlog = '/var/log/rkhunter.log'
+  wheel = 'adm'
 else
-  PREFIX=''
-fi
+  defrkhlog = '/var/log/rkhunter/rkhunter.log'
+  wheel = 'wheel'
+end
 
-$PREFIX grep 'Info: Start date' "$RKHUNTERLOG"
-$PREFIX grep -A 1 -e "\[ Warning \]" -e "Warning:" "$RKHUNTERLOG"
+if phash.has_key?('RKHUNTERLOG')
+  rkhlog = phash['RKHUNTERLOG']
+else
+  case myos
+  when 'Debian'
+    rkhlog = '/var/log/rkhunter.log'
+  else
+    rkhlog = '/var/log/rkhunter/rkhunter.log'
+  end
+end
 
-exit $ERRORS
+if File.exists?(rkhlog)
+  if ! File.readable?(rkhlog)
+    system("chgrp #{wheel} #{rkhlog}")
+  end
+
+  if File.readable?(rkhlog)
+    File.open(rkhlog, 'r') do |rkhlog_file|
+      printing = 0
+      rkhlog_file.read.each_line do |line|
+        case line
+          when /Info: Start date/
+            puts line
+          when /Info: End date/
+            puts line
+            puts '----------------------------------------------------------------'
+          when /The system checks took:/
+            puts line
+          when /\[ Warning \]/
+            printing = 1
+          when /\[ OK \]/
+            printing = 0
+          when /Info:/
+            printing = 0
+        end
+        if printing > 0
+          puts line
+        end
+      end
+    end
+  else
+    STDERR.puts "File not readable: #{rkhlog}"
+    ERRORS += 1
+  end
+
+else
+  STDERR.puts "File not found: #{rkhlog}"
+  ERRORS += 1
+end
+
+exit ERRORS
+
+

@@ -1,0 +1,28 @@
+#!/bin/bash
+# Revision History
+#  201800301 - richarjt - initial version
+#
+
+SCRIPT=$(basename "$0")
+
+if [ "$SCRIPT" = "gitx" ]
+then
+  ACTION='+'
+else
+  ACTION='-'
+fi
+
+ERRORS=0
+if [ -f "$1" ]; then
+  while [ -f "$1" ]
+  do
+    git update-index --chmod=${ACTION}x "$1"
+    RC=$?
+    ((ERRORS+=RC))
+    shift
+  done
+else
+  echo "File not found: $1"
+fi
+
+exit $ERRORS

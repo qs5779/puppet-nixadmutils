@@ -1,0 +1,53 @@
+#!/bin/bash
+# -*- Mode: Bash; tab-width: 2; indent-tabs-mode: nil -*- vim:sta:et:sw=2:ts=2:syntax=sh
+#
+# $Id: rmknownhost 1388 2016-07-02 17:54:43Z jim $
+# $Date: 2016-07-02 13:54:43 -0400 (Sat, 02 Jul 2016) $
+# $HeadURL: svn+ssh://svn.wtfo-guru.com/var/lib/svn/wtfopuppet/branches/wip4/puppet/modules/usrlocal/files/bin/rmknownhost $
+#
+# Revision History:
+# 20160422 que - initial version
+# 20180724 que - fix the damn thing
+#
+
+SCRIPT=$(basename "$0")
+PORT=0
+
+function usage {
+  cat << EOM
+usage: $SCRIPT [-p port] hostname
+  where:
+    -p port - where port specifies remove the port specific entry also
+EOM
+  exit 1
+}
+
+while getopts ":hp:" opt
+do
+  case "$opt" in
+    p )
+      PORT="$OPTARG"
+    ;;
+    h )
+      usage
+    ;;
+    * )
+      echo "Unexpected option \"$opt\""
+      usage
+    ;;
+  esac
+done
+shift $((OPTIND - 1))
+
+while [ -n "$1" ]
+do
+  HN="$1"
+  shift
+  ssh-keygen -R "$HN"
+  if [ $PORT -ne 0 ]
+  then
+    ssh-keygen -R "[$HN]:${PORT}"
+  fi
+done
+
+exit 0

@@ -8,8 +8,10 @@ SCRIPT=$(basename "$0")
 if [ "$SCRIPT" = "gitx" ]
 then
   ACTION='+'
+  MODE=755
 else
   ACTION='-'
+  MODE=644
 fi
 
 ERRORS=0
@@ -19,6 +21,10 @@ if [ -f "$1" ]; then
     git update-index --chmod=${ACTION}x "$1"
     RC=$?
     ((ERRORS+=RC))
+    if [ $RC -eq 0 ]
+    then
+      chmod $MODE "$1"
+    fi
     shift
   done
 else

@@ -28,7 +28,9 @@ class nixadmutils::install {
     require => File[$nixadmutils::nixadmutilsdir],
   }
 
-  ['bin', 'sbin', 'build'].each | String $dn | {
+  $script_directories = ['bin', 'sbin', 'build']
+
+  $script_directories.each | String $dn | {
 
     $group = $dn ? {
       'sbin'  => $nixadmutils::wheelgroup,
@@ -36,14 +38,23 @@ class nixadmutils::install {
     }
 
     file { "${nixadmutils::nixadmutilsdir}/${dn}":
-      ensure             => 'directory',
-      recurse            => true,
-      group              => $group,
-      source_permissions => 'use_when_creating',
-      source             => "puppet:///modules/nixadmutils/${dn}",
-      require            => File[$nixadmutils::nixadmutilsdir],
+      ensure  => 'directory',
+      recurse => true,
+      group   => $group,
+      mode    => undef,
+      source  => "puppet:///modules/nixadmutils/${dn}",
+      require => File[$nixadmutils::nixadmutilsdir],
+      notify  => Exec[$name],
+    }
+
+    exec { "${nixadmutils::nixadmutilsdir}/${dn}":
+      path        => '/usr/bin:/bin',
+      command     => "find ${name} -type f -o -type d -exec chmod 755 {} \\;",
+      user        => 'root',
+      refreshonly => true,
     }
   }
+
 
   $sbin = "${nixadmutils::nixadmutilsdir}/sbin"
 

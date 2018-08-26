@@ -32,24 +32,32 @@ class nixadmutils::install {
 
   $script_directories.each | String $dn | {
 
-    $group = $dn ? {
-      'sbin'  => $nixadmutils::wheelgroup,
-      default => 'root',
+    $target = "${nixadmutils::nixadmutilsdir}/${dn}"
+
+    case $dn {
+      'sbin': {
+        $group = $nixadmutils::wheelgroup
+        $mode = '0754'
+      }
+      default: {
+        $group = 'root'
+        $mode = '0755'
+      }
     }
 
-    file { "${nixadmutils::nixadmutilsdir}/${dn}":
+    file { $target:
       ensure  => 'directory',
       recurse => true,
       group   => $group,
       mode    => undef,
       source  => "puppet:///modules/nixadmutils/${dn}",
       require => File[$nixadmutils::nixadmutilsdir],
-      notify  => Exec[$name],
+      notify  => Exec[$target],
     }
 
-    exec { "${nixadmutils::nixadmutilsdir}/${dn}":
+    exec { $target:
       path        => '/usr/bin:/bin',
-      command     => "find ${name} -type f -o -type d -exec chmod 755 {} \\;",
+      command     => "chmod 755 ${target} ; find ${target} -type f -exec chmod ${mode} {} \\;",
       user        => 'root',
       refreshonly => true,
     }

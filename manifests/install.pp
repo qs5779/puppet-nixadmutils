@@ -28,22 +28,41 @@ class nixadmutils::install {
     require => File[$nixadmutils::nixadmutilsdir],
   }
 
-  ['bin', 'sbin', 'build'].each | String $dn | {
+  $script_directories = ['bin', 'sbin', 'build']
 
-    $group = $dn ? {
-      'sbin'  => $nixadmutils::wheelgroup,
-      default => 'root',
+  $script_directories.each | String $dn | {
+
+    $target = "${nixadmutils::nixadmutilsdir}/${dn}"
+
+    case $dn {
+      'sbin': {
+        $group = $nixadmutils::wheelgroup
+        $mode = '0754'
+      }
+      default: {
+        $group = 'root'
+        $mode = '0755'
+      }
     }
 
-    file { "${nixadmutils::nixadmutilsdir}/${dn}":
-      ensure             => 'directory',
-      recurse            => true,
-      group              => $group,
-      source_permissions => 'use_when_creating',
-      source             => "puppet:///modules/nixadmutils/${dn}",
-      require            => File[$nixadmutils::nixadmutilsdir],
+    file { $target:
+      ensure  => 'directory',
+      recurse => true,
+      group   => $group,
+      mode    => undef,
+      source  => "puppet:///modules/nixadmutils/${dn}",
+      require => File[$nixadmutils::nixadmutilsdir],
+      notify  => Exec[$target],
+    }
+
+    exec { $target:
+      path        => '/usr/bin:/bin',
+      command     => "chmod 755 ${target} ; find ${target} -type f -exec chmod ${mode} {} \\;",
+      user        => 'root',
+      refreshonly => true,
     }
   }
+
 
   $sbin = "${nixadmutils::nixadmutilsdir}/sbin"
 

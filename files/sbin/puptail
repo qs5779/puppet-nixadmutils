@@ -64,18 +64,11 @@ else
   SUDO=sudo
 fi
 
-if [ -f "$LFN" ]
+if [ $LAST -ne 0 ]
 then
-  if [ $LAST -ne 0 ]
-  then
-    PID=$($SUDO tac "$LFN" | grep 'puppet-agent' | head -1 | perl -e '$v=<STDIN>; if($v=~/\[(\d+)\]:/) { printf "$1\n"; }')
-    $SUDO tac "$LFN" | grep "puppet-agent\[$PID\]:" | tac
-  else
-    $SUDO grep 'puppet-agent' "$LFN"
-  fi
+  $SUDO tac "$LFN" | grep 'puppet-agent' | sed -E '/Using configured environment|Starting Puppet client version/q' | tac
 else
-  echo "File not found: $LFN" >&2
-  ((ERRORS+=1))
+  $SUDO grep 'puppet-agent' "$LFN"
 fi
 
 # ERRORS=$((ERRORS+=1)) # darn ubuntu default dash shell

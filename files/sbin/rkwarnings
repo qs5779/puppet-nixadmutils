@@ -14,7 +14,7 @@ SCRDIR = File.dirname( $0 )
 debug = 0
 verbose = 0
 
-ERRORS = 0
+errors = 0
 VERSION = '$Revision: 24951 $'
 
 opts = GetoptLong.new(
@@ -79,6 +79,7 @@ else
 end
 
 myos=`facter osfamily`
+myos.chomp!
 
 case myos
 when 'Debian'
@@ -102,7 +103,7 @@ end
 
 if File.exists?(rkhlog)
   if ! File.readable?(rkhlog)
-    system("chgrp #{wheel} #{rkhlog}")
+    system("sudo chgrp #{wheel} #{rkhlog} ; sudo chmod g+r #{rkhlog}")
   end
 
   if File.readable?(rkhlog)
@@ -131,14 +132,14 @@ if File.exists?(rkhlog)
     end
   else
     STDERR.puts "File not readable: #{rkhlog}"
-    ERRORS += 1
+    errors += 1
   end
 
 else
   STDERR.puts "File not found: #{rkhlog}"
-  ERRORS += 1
+  errors += 1
 end
 
-exit ERRORS
+exit errors
 
 

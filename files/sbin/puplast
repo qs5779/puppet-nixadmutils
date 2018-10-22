@@ -9,24 +9,26 @@ VERSION='$Revision: 1.0.0 $' # will be replaced by svn commit # if using subvers
 VERBOSE=0
 DEBUG=0
 ERRORS=0
-LAST=0
+LAST=1
+LFN=''
 
 function usage {
   cat << EOM
-usage: $SCRIPT [-d] [-h] [-l] [-v] [-V]
+usage: $SCRIPT [-a] [-d] [-h] [-l log] [-v] [-V]
   where:
+    -a show all
     -d specify debug mode
     -h show this message and exit
-    -l show last (most recent) run only
     -v add verbosity
     -V show version and exit
 EOM
   exit 1
 }
 
-while getopts ":dhlvV" opt
+while getopts ":adhl:vV" opt
 do
   case "$opt" in
+    a ) LAST=0 ;;
     d )
       ((DEBUG+=1))
       ((VERBOSE+=1))
@@ -34,7 +36,9 @@ do
     h )
       usage
     ;;
-    l ) ((LAST+=1)) ;;
+    l )
+      LFN="$OPTARG"
+    ;;
     v ) ((VERBOSE+=1)) ;;
     V )
       echo "$SCRIPT VERSION: $(echo $VERSION | awk '{ print $2 }')"
@@ -48,14 +52,17 @@ do
 done
 shift $((OPTIND - 1))
 
-case "$(facter osfamily)" in
-  Debian )
-    LFN=/var/log/syslog
-  ;;
-  * )
-    LFN=/var/log/messages
-  ;;
-esac
+if [ -z "$LFN" ]
+then
+  case "$(facter osfamily)" in
+    Debian )
+      LFN=/var/log/syslog
+    ;;
+    * )
+      LFN=/var/log/messages
+    ;;
+  esac
+fi
 
 if [ -r "$LFN" ]
 then
@@ -64,18 +71,13 @@ else
   SUDO=sudo
 fi
 
-if [ -f "$LFN" ]
+if [ $LAST -ne 0 ]
 then
-  if [ $LAST -ne 0 ]
-  then
-    PID=$($SUDO tac "$LFN" | grep 'puppet-agent' | head -1 | perl -e '$v=<STDIN>; if($v=~/\[(\d+)\]:/) { printf "$1\n"; }')
-    $SUDO tac "$LFN" | grep "puppet-agent\[$PID\]:" | tac
-  else
-    $SUDO grep 'puppet-agent' "$LFN"
-  fi
+  PID=$($SUDO tac "$LFN" | grep 'puppet-agent' | head -1 | perl -e '$v=<STDIN>; if($v=~/\[(\d+)\]:/) { printf "$1\n"; }')
+
+  $SUDO tac "$LFN" | grep "puppet-agent\[$PID\]:" | tac
 else
-  echo "File not found: $LFN" >&2
-  ((ERRORS+=1))
+  $SUDO grep 'puppet-agent' "$LFN"
 fi
 
 # ERRORS=$((ERRORS+=1)) # darn ubuntu default dash shell

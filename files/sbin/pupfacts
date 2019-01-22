@@ -1,0 +1,121 @@
+#!/bin/bash
+# -*- Mode: Bash; tab-width: 2; indent-tabs-mode: nil -*- vim:sta:et:sw=2:ts=2:syntax=sh
+#
+# Revision History:
+#  20181128 - richarjt - module virtual machines don't have an environmnet
+#
+
+OUTNM='puppet_facts.json'
+OUTDIR='/var/log'
+
+function usage {
+  cat << EOF
+    usage: $(basename "$0") [-h] [-d outdir] [-o outname]
+
+      outdir  defaults to /var/log
+      outname defaults to puppet_facts.json
+
+      the file will be saved at <outdir>/<outname>
+EOF
+  exit 1
+}
+
+while getopts ":hd:o:" opt
+do
+  case "$opt" in
+    d )
+      OUTDIR="$OPTARG"
+    ;;
+    o )
+      OUTNM="$OPTARG"
+    ;;
+    h )
+      usage
+    ;;
+    * )
+      echo "Unexpected option \"$opt\""
+      usage
+    ;;
+  esac
+done
+shift $((OPTIND - 1))
+
+EPARAM=''
+
+PUPPET=/opt/puppetlabs/bin/puppet
+if [ ! -x "$PUPPET" ]
+then
+  PUPPET=/usr/bin/puppet
+  if [ ! -x "$PUPPET" ]
+  then
+    echo "Failed to find the puppet binary!!!" >&2
+    exit 1
+  fi
+  echo "Using puppet at: $PUPPET"
+fi
+
+CFG=/etc/puppetlabs/puppet/puppet.conf
+if [ ! -f "$CFG" ]
+then
+  CFG=/etc/puppet/puppet.conf
+  if [ ! -f "$CFG" ]
+  then
+    echo "Failed to find the puppet config file!!!" >&2
+    exit 1
+  fi
+  echo "Using puppet config: $CFG"
+fi
+
+IAM=$(whoami)
+
+if [ "$IAM" != "root" ]
+then
+  SUDO=sudo
+else
+  SUDO=''
+fi
+
+if [ -e "$CFG" ]
+then
+  E=$($SUDO grep ^environment "$CFG" | head -1 | awk -F= '{ print $2 }' | tr -d ' ')
+  if [ -n "$E" ]
+  then
+    EPARAM="--environment $E"
+  fi
+fi
+
+tmpfile=$(/bin/mktemp /tmp/facts.XXXXXXXXX) || exit 1
+$SUDO $PUPPET facts $EPARAM > "$tmpfile"
+
+if [ -z "$OUTDIR" ]
+then
+  OUTDIR=.
+elif [ ! -d "$OUTDIR" ]
+then
+  $SUDO mkdir -p "$OUTDIR"
+fi
+
+if [ -n "$OUTNM"  ]
+then
+  OUTFILE="${OUTDIR}/${OUTNM}"
+else
+  OUTFILE=""
+fi
+
+if [ -n "$OUTFILE" ]
+then
+  $SUDO cp -f $tmpfile $OUTFILE
+fi
+
+if [ -t 1 ]
+then
+  cat $tmpfile
+  if [ -n "$OUTFILE" ]
+  then
+    echo "facts listed in: $OUTFILE"
+  fi
+fi
+
+rm -f $tmpfile
+
+exit 0

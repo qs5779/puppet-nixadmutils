@@ -64,7 +64,7 @@ case "$FAMILY" in
   Debian )
     CODENAME=$(lsb_release -c | awk '{print $2}')
     case "$CODENAME" in
-      stretch )
+      stretch|bionic )
       ;;
       * )
         die "distcodename not supported: $CODENAME"

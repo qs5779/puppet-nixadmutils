@@ -1,0 +1,239 @@
+#!/bin/bash
+# -*- Mode: Bash; tab-width: 2; indent-tabs-mode: nil -*- vim:sta:et:sw=2:ts=2:syntax=sh
+# Revision History:
+# 20190123 - que - initial verison
+#
+
+SCRIPT=$(basename "$0")
+VERSION='$Revision: 1 $'
+VERBOSE=0
+DEBUG=0
+ERRORS=0
+BINDROOT=/var/bind9/chroot
+
+function usage {
+  cat << EOM
+usage: $SCRIPT [-D bindroot] [-d] [-h] [-v] [-V]
+  where:
+    -d specify debug mode
+    -D show direct
+    -h show this message and exit
+    -v add verbosity
+    -V show version and exit
+EOM
+  exit 1
+}
+
+while getopts ":D:h" opt
+do
+  case "$opt" in
+    D )
+      BINDROOT="$OPTARG"
+    ;;
+    h )
+      usage
+    ;;
+    * )
+      echo "Unexpected option \"$opt\""
+      usage
+    ;;
+  esac
+done
+shift $((OPTIND - 1))
+
+function emsg {
+  echo "$1" >&2
+  ((ERRORS+=1))
+}
+
+function die {
+  EC="${2:-1}"
+  emsg "$1"
+  emsg "Abending!!!"
+  exit $EC
+}
+
+if [ "$(whoami)" != "root" ]
+then
+  die "You must use sudo or be root to run this script"
+fi
+
+FAMILY=$(facter osfamily)
+
+case "$FAMILY" in
+  Debian )
+    CODENAME=$(lsb_release -c | awk '{print $2}')
+    case "$CODENAME" in
+      stretch )
+      ;;
+      * )
+        die "distcodename not supported: $CODENAME"
+      ;;
+    esac
+    BINDUSR=bind
+    BINDGRP=bind
+    SERVICE=bind9
+    BINDSYSCONFIG=/etc/default/bind9
+    systemctl stop $SERVICE
+    RC=$?
+    case "$RC" in
+      0 )
+      ;;
+      * )
+        die "systemctl stop $SERVICE exitted with code: $RC"
+      ;;
+    esac
+  ;;
+  # Redhat )
+  #   BINDUSR=named
+  #   BINDGRP=named
+  #   BINDSYSCONFIG=/etc/sysconfig/named
+  # ;;
+  * )
+    die "osfamily not supported: $FAMILY"
+  ;;
+esac
+
+SETUPFLAG="${BINDROOT}/var/cache/${SERVICE}.setup"
+if [ -e "$SETUPFLAG" ]
+then
+  rm -fr $SETUPFLAG
+fi
+
+if [ ! -f "$BINDSYSCONFIG" ]
+then
+  die "File not found: $BINDSYSCONFIG"
+fi
+
+ORIGINALS=/var/cache/originals
+
+if [ ! -d "$ORIGINALS" ]
+then
+  mkdir -p "$ORIGINALS"
+  chmod 700 "$ORIGINALS"
+fi
+
+if [ ! -e "$BINDROOT" ]
+then
+  echo "creating initial bind chroot directories"
+  mkdir -p ${BINDROOT}/{etc,dev,var/cache/bind,var/run/named}
+  mknod ${BINDROOT}/dev/null c 1 3
+  mknod ${BINDROOT}/dev/random c 1 8
+  mknod ${BINDROOT}/dev/urandom c 1 9
+  chmod 660 ${BINDROOT}/dev/{null,random,urandom}
+  chgrp $BINDGRP ${BINDROOT}/dev/{null,random,urandom}
+  chmod 775 ${BINDROOT}/var/{cache/bind,run/named}
+  chgrp $BINDGRP ${BINDROOT}/var/{cache/bind,run/named}
+  find "$BINDROOT"
+elif [ ! -d "$BINDROOT" ]
+then
+  die "found unexpected file type at $BINDROOT expected directory"
+elif [ -L "$BINDROOT" ]
+then
+  die "found symlink at $BINDROOT expected directory"
+else
+  for sd in etc dev var/cache/bind var/run/named
+  do
+    SCRATCH="${BUILDROOT}/${sd}"
+    if [ ! -d "$SCRATCH" ]
+    then
+      die "missing directory $SCRATCH"
+    elif [ -L "$SCRATCH" ]
+    then
+      die "found symlink at $SCRATCH expected directory"
+    fi
+  done
+  for dv in null random urandom
+  do
+    SCRATCH=${BINDROOT}/dev/${dv}
+    if [ ! -c "$SCRATCH" ]
+    then
+      die "expected a character device at $SCRATCH"
+    fi
+    # TODO: verify params
+  done
+fi
+
+case "$FAMILY" in
+  Debian )
+    # if /etc/bind is a symline ensure it resolves to BINDROOT
+    BINDCFG=/etc/bind
+
+    BINDROOTCFG="${BINDROOT}${BINDCFG}"
+    if [ -L "$BINDCFG" ]
+    then
+      SCRATCH=$(readlink -f "$BINDCFG")
+      if [ "$SCRATCH" != "$BINDROOTCFG" ]
+      then
+        die "symlink $BINDCFG not pointing to $BINDROOTCFG"
+      fi
+    elif [ -d "$BINDCFG" ]
+    then
+      if [ ! -e "$BINDROOTCFG" ]
+      then
+        SCRATCH="$ORIGINALS/etc.bind"
+        test -d "$SCRATCH" && rm -fr "$SCRATCH"
+        echo "saving original $BINDCFG to $SCRATCH"
+        cp -a "$BINDCFG" "$SCRATCH"
+        echo "moving directory $BINDCFG to $BINDROOTCFG"
+        mv "$BINDCFG" "$BINDROOTCFG"
+        chown ${BINDUSR}:${BINDGRP} ${BINDROOTCFG}/rndc.key
+        echo "symlinking $BINDCFG to $BINDROOTCFG"
+        cp /etc/localtime "$BINDROOTCFG"
+        ln -s "$BINDROOTCFG" "$BINDCFG"
+        ls -l "$BINDCFG"
+        ls -l "$BINDCFG/"
+      else
+        die "did not expect to find a real directory at $BINDCFG and $BINDROOTCFG"
+      fi
+    else
+      die "Original configuration directory not found: $BINDCFG"
+    fi
+  ;;
+  * )
+    emsg "Ooops how did I get here?"
+  ;;
+esac
+
+# if we get here setup is reasonable sane
+touch "$SETUPFLAG"
+
+if [ -f "${BINDROOTCFG}/localtime" ]
+then
+  diff -q /etc/localtime "${BINDROOTCFG}/localtime" >/dev/null
+  RC=$?
+  case "$RC" in
+    0 )
+    ;;
+    1 )
+      echo "/etc/localtime differs from ${BINDROOTCFG}/localtime"
+    ;;
+    * )
+      emsg "command diff -q /etc/localtime ${BINDROOTCFG}/localtime exited with: $RC"
+    ;;
+  esac
+else
+  emsg "File not found: ${BINDROOTCFG}/localtime"
+fi
+
+if ! grep ^OPTIONS "$BINDSYSCONFIG" | grep -q "$BINDROOT"
+then
+  emsg "NOTICE: did not find chroot specified in $BINDSYSCONFIG"
+fi
+
+SYSLOGCFG="/etc/rsyslog.d/bind-chroot.conf"
+if [ -f ]
+then
+  if ! grep -q AddUnixListenSocket "$SYSLOGCFG"
+  then
+  emsg "NOTICE: did not find AddUnixListenSocket in $SYSLOGCFG"
+  fi
+else
+  echo "NOTICE: file not found => $SYSLOGCFG"
+fi
+
+echo "Hot diggety dog!"
+
+echo "Exiting with exit code: $ERRORS"
+
+exit $ERRORS

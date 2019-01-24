@@ -5,7 +5,7 @@
 #  20181128 - richarjt - module virtual machines don't have an environmnet
 #
 
-OUTNM='puppet_facts.json'
+OUTNM='facts-puppet.json'
 OUTDIR='/var/log'
 QUIET=0
 
@@ -122,8 +122,10 @@ fi
 
 if [ -n "$OUTFILE" ]
 then
+  $SUDO rm -f /var/log/puppet_facts.json
   $SUDO cp -f $tmpfile "$OUTFILE"
   $SUDO chgrp adm "$OUTFILE"
+  $SUDO chmod g+r "$OUTFILE"
 fi
 
 if [ $QUIET -eq 0 ]

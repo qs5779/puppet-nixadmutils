@@ -94,7 +94,7 @@ case "$FAMILY" in
   ;;
 esac
 
-SETUPFLAG="${BINDROOT}/var/cache/${SERVICE}.setup"
+SETUPFLAG="${BINDROOT}/var/cache/bindchroot.setup"
 if [ -e "$SETUPFLAG" ]
 then
   rm -fr $SETUPFLAG

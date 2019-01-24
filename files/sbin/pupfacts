@@ -7,30 +7,36 @@
 
 OUTNM='puppet_facts.json'
 OUTDIR='/var/log'
+QUIET=0
 
 function usage {
   cat << EOF
-    usage: $(basename "$0") [-h] [-d outdir] [-o outname]
+    usage: $(basename "$0") [-h] [-d outdir] [-o outname] [-q]
 
       outdir  defaults to /var/log
       outname defaults to puppet_facts.json
 
       the file will be saved at <outdir>/<outname>
+
+      -q runs quietly
 EOF
   exit 1
 }
 
-while getopts ":hd:o:" opt
+while getopts ":hd:o:q" opt
 do
   case "$opt" in
     d )
       OUTDIR="$OPTARG"
     ;;
+    h )
+      usage
+    ;;
     o )
       OUTNM="$OPTARG"
     ;;
-    h )
-      usage
+    q )
+      QUIET=1
     ;;
     * )
       echo "Unexpected option \"$opt\""
@@ -42,6 +48,18 @@ shift $((OPTIND - 1))
 
 EPARAM=''
 
+if [ ! -t 1 ]
+then
+  QUIET=1
+fi
+
+function speak {
+  if [ $QUIET -eq 0 ]
+  then
+    echo "$1"
+  fi
+}
+
 PUPPET=/opt/puppetlabs/bin/puppet
 if [ ! -x "$PUPPET" ]
 then
@@ -51,7 +69,7 @@ then
     echo "Failed to find the puppet binary!!!" >&2
     exit 1
   fi
-  echo "Using puppet at: $PUPPET"
+  speak "Using puppet at: $PUPPET"
 fi
 
 CFG=/etc/puppetlabs/puppet/puppet.conf
@@ -63,7 +81,7 @@ then
     echo "Failed to find the puppet config file!!!" >&2
     exit 1
   fi
-  echo "Using puppet config: $CFG"
+  speak "Using puppet config: $CFG"
 fi
 
 IAM=$(whoami)
@@ -75,14 +93,14 @@ else
   SUDO=''
 fi
 
-if [ -e "$CFG" ]
-then
-  E=$($SUDO grep ^environment "$CFG" | head -1 | awk -F= '{ print $2 }' | tr -d ' ')
-  if [ -n "$E" ]
-  then
-    EPARAM="--environment $E"
-  fi
-fi
+# if [ -e "$CFG" ]
+# then
+#   E=$($SUDO grep ^environment "$CFG" | head -1 | awk -F= '{ print $2 }' | tr -d ' ')
+#   if [ -n "$E" ]
+#   then
+#     EPARAM="--environment $E"
+#   fi
+# fi
 
 tmpfile=$(/bin/mktemp /tmp/facts.XXXXXXXXX) || exit 1
 $SUDO $PUPPET facts $EPARAM > "$tmpfile"
@@ -104,10 +122,11 @@ fi
 
 if [ -n "$OUTFILE" ]
 then
-  $SUDO cp -f $tmpfile $OUTFILE
+  $SUDO cp -f $tmpfile "$OUTFILE"
+  $SUDO chgrp adm "$OUTFILE"
 fi
 
-if [ -t 1 ]
+if [ $QUIET -eq 0 ]
 then
   cat $tmpfile
   if [ -n "$OUTFILE" ]

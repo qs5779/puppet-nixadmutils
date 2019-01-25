@@ -116,14 +116,14 @@ fi
 if [ ! -e "$BINDROOT" ]
 then
   echo "creating initial bind chroot directories"
-  mkdir -p ${BINDROOT}/{etc,dev,var/cache/bind,var/run/named}
+  mkdir -p ${BINDROOT}/{etc,dev,var/cache/bind,run/named}
   mknod ${BINDROOT}/dev/null c 1 3
   mknod ${BINDROOT}/dev/random c 1 8
   mknod ${BINDROOT}/dev/urandom c 1 9
   chmod 660 ${BINDROOT}/dev/{null,random,urandom}
   chgrp $BINDGRP ${BINDROOT}/dev/{null,random,urandom}
-  chmod 775 ${BINDROOT}/var/{cache/bind,run/named}
-  chgrp $BINDGRP ${BINDROOT}/var/{cache/bind,run/named}
+  chmod 775 ${BINDROOT}/var/{cache/bind} ${BINDROOT}/run/named
+  chgrp $BINDGRP ${BINDROOT}/var/{cache/bind} ${BINDROOT}/run/named
   find "$BINDROOT"
 elif [ ! -d "$BINDROOT" ]
 then

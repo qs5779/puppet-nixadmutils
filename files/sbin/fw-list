@@ -71,15 +71,14 @@ shift $((OPTIND - 1))
 
 if [ "$(whoami)" != "root" ]
 then
-  SUDO=sudo
-else
-  SUDO=''
+  echo "you must be root to run this script. try sudo" >&2
+  exit 1
 fi
 
 if [ -z "$ZONES" ]
 then
     #default to all active zones when not specified
-  ZONES=$($SUDO firewall-cmd --get-active-zones | grep '^[a-zA-Z]')
+  ZONES=$(firewall-cmd --get-active-zones | grep '^[a-zA-Z]')
 fi
 
 if [ $DEBUG -ne 0 ]
@@ -89,15 +88,15 @@ fi
 
 for zone in $ZONES
 do
-  $SUDO firewall-cmd --zone=${zone} --list-all
+  firewall-cmd --zone=${zone} --list-all
 done
 
 if [ $DIRECT -ne 0 ]
 then
   echo "Chains:"
-  $SUDO firewall-cmd --direct --get-all-chains
+  firewall-cmd --direct --get-all-chains
   echo "Chains:"
-  $SUDO firewall-cmd --direct --get-all-rules
+  firewall-cmd --direct --get-all-rules
 fi
 
 # ERRORS=$((ERRORS+=1)) # darn ubuntu default dash shell

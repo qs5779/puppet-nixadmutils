@@ -10,8 +10,8 @@ then
   #echo "COOKIE: $COOKIE"
   if [ -n "$COOKIE" ]
   then
-    echo "executing: sudo xauth add \"$COOKIE\""
-    sudo xauth add "$COOKIE"
+    echo "executing: sudo xauth add $COOKIE
+    sudo xauth add $COOKIE
   else
     echo "No cookie found!"
     EC=1

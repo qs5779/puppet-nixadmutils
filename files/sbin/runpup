@@ -15,9 +15,10 @@ ERRORS=0
 
 function usage {
   cat << EOM
-usage: $SCRIPT [-d] [-h] [-n] [-v] [-V]
+usage: $SCRIPT [-d] [-g] [-h] [-n] [-v] [-V]
   where:
     -d specify debug mode
+    -g specify --graph
     -h show this message and exit
     -n specify dry-run/noop mode
     -v add verbosity
@@ -27,21 +28,30 @@ EOM
 }
 
 function add_option {
+  typeset O="$1"
 
-  if [ -n "$OPTIONS" ]
+  # the -- in next expression means end of command options
+  # so any hyphens in expression won't be mistaked as options
+  if ! echo "$OPTIONS" | grep -q -- "$O"
   then
-    OPTIONS="$OPTIONS $1"
-  else
-    OPTIONS="$1"
+    if [ -n "$OPTIONS" ]
+    then
+      OPTIONS="$OPTIONS $0"
+    else
+      OPTIONS="$0"
+    fi
   fi
 }
 
-while getopts ":dhnvV" opt
+while getopts ":dghnvV" opt
 do
   case "$opt" in
     d )
       add_option "--debug"
       ((VERBOSE+=1))
+    ;;
+    g )
+      add_option "--graph"
     ;;
     h )
       usage

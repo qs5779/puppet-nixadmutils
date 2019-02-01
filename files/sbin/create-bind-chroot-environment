@@ -122,8 +122,8 @@ then
   mknod ${BINDROOT}/dev/urandom c 1 9
   chmod 660 ${BINDROOT}/dev/{null,random,urandom}
   chgrp $BINDGRP ${BINDROOT}/dev/{null,random,urandom}
-  chmod 775 ${BINDROOT}/var/{cache/bind} ${BINDROOT}/run/named
-  chgrp $BINDGRP ${BINDROOT}/var/{cache/bind} ${BINDROOT}/run/named
+  chmod 775 ${BINDROOT}/var/cache/bind ${BINDROOT}/run/named
+  chgrp $BINDGRP ${BINDROOT}/var/cache/bind ${BINDROOT}/run/named
   find "$BINDROOT"
 elif [ ! -d "$BINDROOT" ]
 then

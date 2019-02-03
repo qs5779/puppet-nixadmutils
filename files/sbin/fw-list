@@ -21,6 +21,9 @@ usage: $SCRIPT [-D] [-d] [-h] [-v] [-V]
     -h show this message and exit
     -v add verbosity
     -V show version and exit
+    -z zone
+
+    by default all active zones are listed if no -z zone specifed
 EOM
   exit 1
 }
@@ -69,16 +72,10 @@ do
 done
 shift $((OPTIND - 1))
 
-if [ "$(whoami)" != "root" ]
-then
-  echo "you must be root to run this script. try sudo" >&2
-  exit 1
-fi
-
 if [ -z "$ZONES" ]
 then
     #default to all active zones when not specified
-  ZONES=$(firewall-cmd --get-active-zones | grep '^[a-zA-Z]')
+  ZONES=$(sudo firewall-cmd --get-active-zones | grep '^[a-zA-Z]')
 fi
 
 if [ $DEBUG -ne 0 ]
@@ -88,15 +85,15 @@ fi
 
 for zone in $ZONES
 do
-  firewall-cmd --zone=${zone} --list-all
+  sudo firewall-cmd --zone=${zone} --list-all
 done
 
 if [ $DIRECT -ne 0 ]
 then
   echo "Chains:"
-  firewall-cmd --direct --get-all-chains
+  sudo firewall-cmd --direct --get-all-chains
   echo "Chains:"
-  firewall-cmd --direct --get-all-rules
+  sudo firewall-cmd --direct --get-all-rules
 fi
 
 # ERRORS=$((ERRORS+=1)) # darn ubuntu default dash shell

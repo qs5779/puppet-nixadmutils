@@ -12,6 +12,7 @@ VERSION='Revision: 2.0.0'
 VERBOSE=0
 OPTIONS='--test'
 ERRORS=0
+SERVER=''
 
 function usage {
   cat << EOM
@@ -36,14 +37,14 @@ function add_option {
   then
     if [ -n "$OPTIONS" ]
     then
-      OPTIONS="$OPTIONS $0"
+      OPTIONS="$OPTIONS $O"
     else
-      OPTIONS="$0"
+      OPTIONS="$O"
     fi
   fi
 }
 
-while getopts ":dghnvV" opt
+while getopts ":dghnS:vVw" opt
 do
   case "$opt" in
     d )
@@ -58,6 +59,12 @@ do
     ;;
     n )
       add_option "--noop"
+    ;;
+    S )
+      SERVER="$OPTARG"
+    ;;
+    w )
+      add_option "--waitforcert=60"
     ;;
     v ) ((VERBOSE+=1)) ;;
     V )
@@ -81,6 +88,32 @@ then
     echo "Failed to find the puppet binary!!!" >&2
     exit 1
   fi
+  ETCPUP=/etc/puppet
+else
+  ETCPUP=/etc/puppetlabs
+fi
+
+# ALT server run
+# sudo puppet agent -t \
+#   --server=puppet.dev.example.com \
+#   --confdir=/etc/puppetlabs/puppet-dev # Runs against dev puppet server
+
+if [ -n "$SERVER" ]
+then
+  # get all to left of first dot
+  ALD=$(echo $SERVER | awk -F. '{print $1}')
+  CFGDIR=${ETCPUP}/puppet-${ALD}
+
+  if [ ! -d "$CFGDIR" ]
+  then
+    mkdir "$CFGDIR"
+    for f in auth.conf hiera.yaml puppet.conf
+    do
+      cp "${ETCPUP}/puppet/${f}" "$CFGDIR"
+    done
+  fi
+
+  OPTIONS="$OPTIONS --server=${SERVER} --confdir=${CFGDIR}"
 fi
 
 #puppet agent --test 2>&1 | tee ${HOME}/agent.out

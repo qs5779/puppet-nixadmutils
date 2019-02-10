@@ -106,7 +106,8 @@ then
 
   if [ ! -d "$CFGDIR" ]
   then
-    mkdir "$CFGDIR"
+    mkdir -q "${CFGDIR}/ssl"
+    chown puppet:puppet "${CFGDIR}/ssl"
     for f in auth.conf hiera.yaml puppet.conf
     do
       cp "${ETCPUP}/puppet/${f}" "$CFGDIR"

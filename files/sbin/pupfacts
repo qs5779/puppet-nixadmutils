@@ -14,7 +14,7 @@ function usage {
     usage: $(basename "$0") [-h] [-d outdir] [-o outname] [-q]
 
       outdir  defaults to /var/log
-      outname defaults to puppet_facts.json
+      outname defaults to facts-puppet.json
 
       the file will be saved at <outdir>/<outname>
 
@@ -122,7 +122,7 @@ fi
 
 if [ -n "$OUTFILE" ]
 then
-  $SUDO rm -f /var/log/puppet_facts.json
+  $SUDO rm -f /var/log/puppet_facts.json # the old default name
   $SUDO cp -f $tmpfile "$OUTFILE"
   $SUDO chgrp adm "$OUTFILE"
   $SUDO chmod g+r "$OUTFILE"

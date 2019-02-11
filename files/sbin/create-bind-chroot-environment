@@ -41,6 +41,11 @@ do
 done
 shift $((OPTIND - 1))
 
+if [ -x /opt/puppetlabs/bin/facter ]
+then
+  PATH=${PATH}:/opt/puppetlabs/bin
+fi
+
 function emsg {
   echo "$1" >&2
   ((ERRORS+=1))
@@ -59,6 +64,7 @@ then
 fi
 
 FAMILY=$(facter osfamily)
+V=$(facter virtual)
 
 case "$FAMILY" in
   Debian )
@@ -74,15 +80,18 @@ case "$FAMILY" in
     BINDGRP=bind
     SERVICE=bind9
     BINDSYSCONFIG=/etc/default/bind9
-    systemctl stop $SERVICE
-    RC=$?
-    case "$RC" in
-      0 )
-      ;;
-      * )
-        die "systemctl stop $SERVICE exitted with code: $RC"
-      ;;
-    esac
+    if [ "$V" != "docker" ]
+    then
+      systemctl stop $SERVICE
+      RC=$?
+      case "$RC" in
+        0 )
+        ;;
+        * )
+          die "systemctl stop $SERVICE exitted with code: $RC"
+        ;;
+      esac
+    fi
   ;;
   # Redhat )
   #   BINDUSR=named

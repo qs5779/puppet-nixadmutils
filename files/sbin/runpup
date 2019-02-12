@@ -16,12 +16,14 @@ SERVER=''
 
 function usage {
   cat << EOM
-usage: $SCRIPT [-d] [-g] [-h] [-n] [-v] [-V]
+usage: $SCRIPT [-d] [-e env] [-g] [-h] [-n] [-S server] [-v] [-V]
   where:
     -d specify debug mode
+    -e specify alternate environment
     -g specify --graph
     -h show this message and exit
     -n specify dry-run/noop mode
+    -S specify alternate server
     -v add verbosity
     -V show version and exit
 EOM
@@ -44,12 +46,15 @@ function add_option {
   fi
 }
 
-while getopts ":dghnS:vVw" opt
+while getopts ":de:ghnS:vVw" opt
 do
   case "$opt" in
     d )
       add_option "--debug"
       ((VERBOSE+=1))
+    ;;
+    e )
+      add_option "--environment=${OPTARG}"
     ;;
     g )
       add_option "--graph"

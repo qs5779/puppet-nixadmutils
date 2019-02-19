@@ -59,9 +59,14 @@ case "$FAM" in
   Debian )
     $PREFIX apt update
     $PREFIX apt upgrade
+    if [ -f /var/run/reboot-required ]; then
+      echo 'reboot required'
+    fi
   ;;
   RedHat )
     $PREFIX yum update
+    needs-restarting  -r
+    echo $?
   ;;
   * )
     echo "Unsupported osfamily: $FAM" >&2

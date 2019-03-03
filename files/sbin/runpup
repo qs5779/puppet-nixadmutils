@@ -123,18 +123,38 @@ then
 fi
 
 #puppet agent --test 2>&1 | tee ${HOME}/agent.out
-COMMAND="sudo $PUPPET agent $OPTIONS"
+COMMAND="sudo $PUPPET agent --detailed-exitcodes $OPTIONS"
 echo "$SCRIPT: $VERSION"
 echo "executing: $COMMAND"
 $COMMAND > >(tee ${HOME}/agent.out) 2> >(tee ${HOME}/agent.err >&2)
 RC=$?
 echo "stdout saved in  ${HOME}/agent.out"
 
-if [ $RC -ne 0 ]
-then
-  echo "the puppet agent run exited with $RC"
-fi
+case "$RC" in
+  0 )
+    MSG="The run succeeded with no changes or failures."
+  ;;
+  1 )
+    MSG="The run failed, or wasn't attempted due to another run already in progress."
+  ;;
+  2 )
+    MSG="The run succeeded, and some resources were changed."
+    RC=0
+  ;;
+  4 )
+    MSG="The run succeeded, and some resources failed."
+    RC=0
+  ;;
+  6 )
+    MSG="The run succeeded, and included both changes and failures."
+    RC=0
+  ;;
+  * )
+    MSG="The run exited with $RC"
+  ;;
+esac
 
+echo "$MSG"
 if [ -s ${HOME}/agent.err ]
 then
   cat ${HOME}/agent.err

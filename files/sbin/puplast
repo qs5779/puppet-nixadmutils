@@ -19,6 +19,7 @@ usage: $SCRIPT [-a] [-d] [-h] [-l log] [-v] [-V]
     -a show all
     -d specify debug mode
     -h show this message and exit
+    -l specify log file
     -v add verbosity
     -V show version and exit
 EOM
@@ -73,7 +74,7 @@ fi
 
 if [ $LAST -ne 0 ]
 then
-  PID=$($SUDO tac "$LFN" | grep 'puppet-agent' | head -1 | perl -e '$v=<STDIN>; if($v=~/\[(\d+)\]:/) { printf "$1\n"; }')
+  PID=$($SUDO tac "$LFN" | grep 'puppet-agent' | grep -v 'systemd-tmpfiles' | head -1 | perl -e '$v=<STDIN>; if($v=~/\[(\d+)\]:/) { printf "$1\n"; }')
 
   $SUDO tac "$LFN" | grep "puppet-agent\[$PID\]:" | tac
 else

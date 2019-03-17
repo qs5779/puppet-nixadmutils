@@ -7,10 +7,10 @@
 
 tmpfile=$(mktemp /tmp/pkgs.XXXXXXXX) || exit 1
 
-if [ -f /etc/redhat-rlease ]
+if [ -f /etc/redhat-release ]
 then
   outfile='/var/log/rpmpkgs'
-  rpm -qa --qf '%{name}-%{version}-%{release}.%{arch}.rpm\n' 2>&1 | sort > "$tempfile"
+  rpm -qa --qf '%{name}-%{version}-%{release}.%{arch}.rpm\n' 2>&1 | sort > "$tmpfile"
 else
   apt list --installed | sort > "$tmpfile"
   outfile='/var/log/aptpkgs'

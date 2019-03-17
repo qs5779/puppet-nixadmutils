@@ -1,0 +1,48 @@
+#!/bin/bash
+# -*- Mode: Bash; tab-width: 2; indent-tabs-mode: nil -*- vim:sta:et:sw=2:ts=2:syntax=sh
+#
+# Revision History:
+# 20190317 - que - initial version
+#
+
+tmpfile=$(mktemp /tmp/pkgs.XXXXXXXX) || exit 1
+
+if [ -f /etc/redhat-rlease ]
+then
+  outfile='/var/log/rpmpkgs'
+  rpm -qa --qf '%{name}-%{version}-%{release}.%{arch}.rpm\n' 2>&1 | sort > "$tempfile"
+else
+  apt list --installed | sort > "$tmpfile"
+  outfile='/var/log/aptpkgs'
+fi
+
+if [ -w "$outfile" ]
+then
+  writable=1
+  diff -q "$tmpfile" "$outfile" > /dev/null
+  differs=$?
+elif [ -w "$(dirname "$outfile")" ]
+then
+  writable=1
+  differs=1
+else
+  writable=0
+  differs=0
+fi
+
+if [ $writable -ne 0 -a $differs -eq 1 ]
+then
+  cat "$tmpfile" > "$outfile"
+# else
+#   echo "writable: $writable"
+#   echo "differs:  $differs"
+fi
+
+if [ -t 0 ]
+then
+  cat "$tmpfile"
+fi
+
+rm -rf "$tmpfile"
+
+exit $?

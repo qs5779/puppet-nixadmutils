@@ -60,14 +60,30 @@ fi
 
 while [ -n "$1" ]
 do
-  CERT="$1"
+  INFILE="$1"
   shift
 
-  if [ -r "$CERT" ]
+  EXT="${INFILE##*.}"
+  EXT=$(echo $EXT | tr '[A-Z]' ['a-z'])
+  case "$EXT" in
+    crl )
+      SSLCMD=crl
+      DIGEST=''
+      prestart=lastup
+      preend=nextup
+    ;;
+    * )
+      SSLCMD=x509
+      prestart=start
+      preend=end
+    ;;
+  esac
+
+  if [ -r "$INFILE" ]
   then
-    openssl x509 -in "$CERT" -noout -startdate -enddate
+    openssl $SSLCMD -in "$INFILE" -noout -${prestart}date -${preend}date
   else
-    echo "File not (found|readable): $CERT" >&2
+    echo "File not (found|readable): $INFILE" >&2
     ((ERRORS+=1))
   fi
 done

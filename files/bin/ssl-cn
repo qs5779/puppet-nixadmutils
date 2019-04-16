@@ -1,15 +1,11 @@
 #!/bin/bash
 # -*- Mode: Bash; tab-width: 2; indent-tabs-mode: nil -*- vim:sta:et:sw=2:ts=2:syntax=sh
 # Revision History:
-# 20161008 - quiensabe - check extension
-# 20170519 - que - crl doesn't accept a DIGEST
-# 20170708 - que - support s switch in getopts
-# 20190416 - que - remove unused digest
-#
+# 20190419 - que - initial version
 #
 
 SCRIPT=$(basename "$0")
-VERSION='$Revision: 2526 $'
+VERSION=1.0.0
 VERBOSE=0
 DEBUG=0
 ERRORS=0
@@ -40,7 +36,7 @@ do
     ;;
     v ) ((VERBOSE+=1)) ;;
     V )
-      echo "$SCRIPT VERSION: $(echo $VERSION | awk '{ print $2 }')"
+      echo "$SCRIPT VERSION: $VERSION"
       exit 0
     ;;
     * )
@@ -61,20 +57,9 @@ do
   INFILE="$1"
   shift
 
-  EXT="${INFILE##*.}"
-  EXT=$(echo $EXT | tr '[A-Z]' ['a-z'])
-  case "$EXT" in
-    csr )
-      SSLCMD=req
-    ;;
-    * )
-      SSLCMD=x509
-    ;;
-  esac
-
   if [ -r "$INFILE" ]
   then
-    openssl $SSLCMD -in "$INFILE" -noout -text | grep DNS
+    openssl x509 -noout -subject -nameopt multiline -in "$INFILE" | sed -n 's/ *commonName *= //p'
   else
     echo "File not (found|readable): $INFILE" >&2
     ((ERRORS+=1))

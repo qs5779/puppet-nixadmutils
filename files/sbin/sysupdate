@@ -54,6 +54,7 @@ else
 fi
 
 FAM=$(facter osfamily)
+MDR=$(facter operatingsystemmajrelease)
 
 case "$FAM" in
   Debian )
@@ -64,9 +65,15 @@ case "$FAM" in
     fi
   ;;
   RedHat )
-    $PREFIX yum update
-    needs-restarting  -r
-    echo $?
+    if [ $MDR -gt 7 ]
+    then
+      $PREFIX dnf --refresh upgrade
+    else
+      $PREFIX yum update
+    fi
+    needs-restarting
+    RC=$?
+    echo "needs-retarting exited with: $RC"
   ;;
   * )
     echo "Unsupported osfamily: $FAM" >&2

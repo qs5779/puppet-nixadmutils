@@ -71,7 +71,7 @@ case "$FAM" in
     else
       $PREFIX yum update
     fi
-    needs-restarting
+    $PREFIX needs-restarting
     RC=$?
     echo "needs-retarting exited with: $RC"
   ;;

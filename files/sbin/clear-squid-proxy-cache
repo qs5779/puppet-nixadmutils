@@ -1,0 +1,80 @@
+#!/bin/bash
+# -*- Mode: Bash; tab-width: 2; indent-tabs-mode: nil -*- vim:sta:et:sw=2:ts=2:syntax=sh
+# Revision History:
+# 20190702 - que - initial verison
+#
+
+SCRIPT=$(basename "$0")
+VERSION='$Revision: 1 $'
+VERBOSE=0
+DEBUG=0
+ERRORS=0
+BINDROOT=/var/bind9/chroot
+
+function usage {
+  cat << EOM
+usage: $SCRIPT [-h]
+  where:
+    -h show this message and exit
+EOM
+  exit 1
+}
+
+while getopts ":h" opt
+do
+  case "$opt" in
+    h )
+      usage
+    ;;
+    * )
+      echo "Unexpected option \"$opt\""
+      usage
+    ;;
+  esac
+done
+shift $((OPTIND - 1))
+
+if [ "$(whoami)" != "root" ]
+then
+  echo "You must be root to run this script!!!" >&2
+  exit 1
+fi
+
+case "$(facter osfamily)" in
+  RedHat )
+    SU=squid
+  ;;
+  * )
+    SU=proxy
+  ;;
+esac
+
+SDS=$(grep cache_dir /etc/squid/squid.conf | awk '{ print $3 }')
+
+if ! echo "$SDS" | grep '/var/spool/squid'
+then
+  SDS="/var/spool/squid $SDS"
+fi
+
+systemctl stop squid
+DIRTY=0
+for d in $SDS
+do
+  if [ -d "$d" ]
+  then
+    echo "clearing squid cache directory: $d"
+    rm -fr "$d"
+    mkdir "$d"
+    chown ${SU}:${SU} "$d"
+    ((DIRTY+=1))
+  else
+    echo "cache_dir not found: $SD" >&2
+    ((ERRORS+=1))
+  fi
+  if [ $DIRTY -ne 0 ]
+  then
+    squid -z
+  fi
+done
+
+systemctl start squid

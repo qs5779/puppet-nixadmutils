@@ -3,18 +3,31 @@
 #
 # Revision History:
 # 20190317 - que - initial version
+# 20190806 - que - gentoo support
 #
 
 tmpfile=$(mktemp /tmp/pkgs.XXXXXXXX) || exit 1
 
-if [ -f /etc/redhat-release ]
-then
-  outfile='/var/log/rpmpkgs'
-  rpm -qa --qf '%{name}-%{version}-%{release}.%{arch}.rpm\n' 2>&1 | sort > "$tmpfile"
-else
-  apt list --installed | sort > "$tmpfile"
-  outfile='/var/log/aptpkgs'
-fi
+FAM=$(facter osfamily)
+
+case "$FAM" in
+  Debian )
+    apt list --installed | sort > "$tmpfile"
+    outfile='/var/log/aptpkgs'
+  ;;
+  RedHat )
+    outfile='/var/log/rpmpkgs'
+    rpm -qa --qf '%{name}-%{version}-%{release}.%{arch}.rpm\n' 2>&1 | sort > "$tmpfile"
+  ;;
+  Gentoo )
+    qlist -Iv > "$tmpfile"
+    outfile='/var/log/gtpkgs'
+  ;;
+  * )
+    echo "Unsupported osfamily: $FAM" >&2
+    exit 1
+  ;;
+esac
 
 if [ -w "$outfile" ]
 then

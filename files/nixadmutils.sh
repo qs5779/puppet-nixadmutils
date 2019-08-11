@@ -7,7 +7,7 @@ do
   fi
 done
 
-if groups | grep -q -e wheel -e sudo
+if groups | grep -q -e wheel -e sudo -e vagrant
 then
   for d in /opt/nixadmutils/sbin /usr/local/sbin
   do

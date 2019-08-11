@@ -9,22 +9,22 @@ VERSION='$Revision: 1.0.0 $' # will be replaced by svn commit # if using subvers
 VERBOSE=0
 DEBUG=0
 ERRORS=0
-LAST=0
+LINES=10
 
 function usage {
   cat << EOM
 usage: $SCRIPT [-d] [-h] [-l] [-v] [-V]
   where:
-    -d specify debug mode
-    -h show this message and exit
-    -l show last (most recent) run only
-    -v add verbosity
-    -V show version and exit
+    -d       - specify debug mode
+    -h       - show this message and exit
+    -n lines - number of lines to show (default 10)
+    -v       - add verbosity
+    -V       - show version and exit
 EOM
   exit 1
 }
 
-while getopts ":dhlvV" opt
+while getopts ":dhn:vV" opt
 do
   case "$opt" in
     d )
@@ -34,7 +34,7 @@ do
     h )
       usage
     ;;
-    l ) ((LAST+=1)) ;;
+    n ) LINES=$OPTARG ;;
     v ) ((VERBOSE+=1)) ;;
     V )
       echo "$SCRIPT VERSION: $(echo $VERSION | awk '{ print $2 }')"
@@ -48,28 +48,34 @@ do
 done
 shift $((OPTIND - 1))
 
-case "$(facter osfamily)" in
-  Debian )
-    LFN=/var/log/syslog
-  ;;
-  * )
-    LFN=/var/log/messages
-  ;;
-esac
-
-if [ -r "$LFN" ]
+if [ "$(whoami)" = "root" ]
 then
   SUDO=''
 else
   SUDO=sudo
 fi
 
-if [ $LAST -ne 0 ]
-then
-  $SUDO tac "$LFN" | grep 'puppet-agent' | sed -E '/Using configured environment|Starting Puppet client version/q' | tac
-else
-  $SUDO grep 'puppet-agent' "$LFN"
-fi
+VIRT=$(facter virtual)
 
-# ERRORS=$((ERRORS+=1)) # darn ubuntu default dash shell
+case "$(facter osfamily)" in
+  Archlinux )
+    if [ "$VIRT" != "physical" ]
+    then
+      MATCH=/usr/bin/puppet
+    else
+      MATCH="-u puppet.service"
+    fi
+  ;;
+  * )
+    if [ "$VIRT" = "virtualbox" ]
+    then
+      MATCH=/opt/puppetlabs/bin/puppet
+    else
+      MATCH="-u puppet.service"
+    fi
+  ;;
+esac
+
+$SUDO journalctl -l $MATCH | tail -n $LINES
+
 exit $ERRORS

@@ -78,13 +78,26 @@ case "$FAM" in
     echo "needs-retarting exited with: $RC"
   ;;
   Gentoo )
-    $PREFIX emerge --sync
+    TICKER=/root/last.emerge.sync
+    if $PREFIX test -f "$TICKER"
+    then
+      LAST=$($PREFIX date -r "$TICKER")
+      NOW=$(date '+%S')
+      ELAPSED=$((NOW-LAST))
+      if [ $ELAPSED -gt 86400 ]
+      then
+        $PREFIX emerge --sync
+        touch "$TICKER"
+      fi
+    else
+      $PREFIX emerge --sync
+      touch "$TICKER"
+    fi
     $PREFIX emerge -avuDN --with-bdeps y --keep-going world
-    $PREFIX etc-update # or dispatch-conf
-    $PREFIX lafilefixer --justfixit | grep -v skipping # fix static library
-    $PREFIX emerge -av --depclean
-    $PREFIX revdep-rebuild
-    $PREFIX eclean -d distfiles
+    # $PREFIX etc-update # or dispatch-conf
+    # $PREFIX emerge -av --depclean
+    # $PREFIX revdep-rebuild
+    # $PREFIX eclean -d distfiles
   ;;
   * )
     echo "Unsupported osfamily: $FAM" >&2

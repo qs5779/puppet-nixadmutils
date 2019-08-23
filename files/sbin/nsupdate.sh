@@ -49,7 +49,7 @@ function usage {
 }
 
 # parsing cmd
-if [ "$1" == "add" -o "$1" == "delete" -o "$1" == "update" ]; then
+if [ "$1" == "add" -o "$1" == "delete" -o "$1" == "update" -o "$1" == "test" ]; then
         CMD=$1
 else
   echo -e "missing/invalid command"
@@ -119,9 +119,14 @@ fi
 # get current IPv4/6 address from net or interface
 if [ -z "$RDATA" ] ; then
   if [ -z "$IF" ] ; then
+    if [ $VER -ne 4 ]
+    then
+      echo "You must provide an interface to update a ipv6 address!!!"
+      exit 1
+    fi
     RDATA=$(curl -s 'http://checkip.dyndns.org' | sed 's/.*Current IP Address: \([0-9\.]\{7,15\}\).*/\1/')
   else
-    RDATA=$(ip -o -$VER address show dev $IF | sed -nr 's/.*inet6? ([^/ ]+).*/\1/p')
+    RDATA=$(ip -o -$VER address show dev $IF | sed -nr 's/.*inet6? ([^/ ]+).*/\1/p' | grep -v ^f[ec])
   fi
 
 fi
@@ -150,6 +155,17 @@ EOF
     exit ;;
   update)
     nsupdate $OPTS <<EOF
+      server $NS
+      zone $ZONE
+      update delete $HOST $TYPE
+      update add $HOST $TTL $TYPE $RDATA
+      show
+      send
+EOF
+    exit ;;
+  test)
+    cat <<EOF
+    nsupdate $OPTS
       server $NS
       zone $ZONE
       update delete $HOST $TYPE

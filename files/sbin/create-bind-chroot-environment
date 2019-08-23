@@ -169,6 +169,7 @@ case "$FAMILY" in
     BINDCFG=/etc/bind
 
     BINDROOTCFG="${BINDROOT}${BINDCFG}"
+    BINDROOTETC="$(dirname "$BINDROOTCFG")"
     if [ -L "$BINDCFG" ]
     then
       SCRATCH=$(readlink -f "$BINDCFG")
@@ -192,6 +193,12 @@ case "$FAMILY" in
         ln -s "$BINDROOTCFG" "$BINDCFG"
         ls -l "$BINDCFG"
         ls -l "$BINDCFG/"
+        if [ -f "${BINDROOTCFG}/bind.keys" ]
+        then
+          cd "$BINDROOTETC"
+          echo "symlinking named.iscdlv.key to bind/bind.keys"
+          ln -s bind/bind.keys named.iscdlv.key
+        fi
       else
         die "did not expect to find a real directory at $BINDCFG and $BINDROOTCFG"
       fi

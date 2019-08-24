@@ -4,6 +4,7 @@
 # Revision History:
 # 20180526 - que - initial version
 # 20190806 - que - gentoo support
+# 20190817 - que - arch support
 #
 
 SCRIPT=$(basename "$0")
@@ -58,6 +59,9 @@ FAM=$(facter osfamily)
 #MDR=$(facter operatingsystemmajrelease)
 
 case "$FAM" in
+  Archlinux )
+    $PREFIX pacman -Syu
+  ;;
   Debian )
     $PREFIX apt update
     $PREFIX apt upgrade

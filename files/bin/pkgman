@@ -1,0 +1,174 @@
+#!/usr/bin/env ruby
+
+require 'getoptlong'
+
+@basenm = File.basename($PROGRAM_NAME)
+# scrdir = File.dirname($PROGRAM_NAME)
+
+@debug = 0
+@verbose = 0
+@errors = 0
+@action = ''
+VERSION = '$Revision: 1.0.0 $'.freeze
+
+
+opts = GetoptLong.new(
+  ['--debug', '-d', GetoptLong::NO_ARGUMENT],
+  ['--verbose', '-v', GetoptLong::NO_ARGUMENT],
+  ['--version', '-V', GetoptLong::NO_ARGUMENT],
+  ['--help', '--man', '-h', GetoptLong::NO_ARGUMENT],
+  ['--list', '-l', GetoptLong::NO_ARGUMENT],
+  ['--search', '-s', GetoptLong::NO_ARGUMENT],
+  ['--install', '-i', GetoptLong::NO_ARGUMENT],
+  # ['--repeat', '-n', GetoptLong::REQUIRED_ARGUMENT],
+  # ['--name', GetoptLong::OPTIONAL_ARGUMENT]
+)
+
+def usage(ec = 0)
+  puts <<-USG
+usage: #{@basenm} [-d] [-h] [-v] [-V]
+  where:
+    -d specify debug mode
+    -h show this message and exit
+    -v add verbosity
+    -V show version and exit
+  USG
+  exit ec
+end
+
+opts.each do |opt, _arg|
+  case opt
+  when '--help'
+    usage(0)
+  when '--version'
+    puts "#{@basenm} #{VERSION[/\d+/]}"
+    exit 0
+  when '--list'
+    @action = 'list'
+  when '--search'
+    @action = 'search'
+  when '--install'
+    @action = 'install'
+  when '--verbose'
+    @verbose += 1
+  when '--debug'
+    @debug += 1
+    unless @verbose > 0
+      @verbose += 1
+    end
+  when '--log'
+    log_fn = _arg
+  end
+end
+
+@args = ARGV.join(' ')
+puts @args.inspect if @debug > 0
+
+def load_properties(properties_filename)
+  properties = {}
+  File.open(properties_filename, 'r') do |properties_file|
+    properties_file.read.each_line do |line|
+      line.strip!
+      if (line[0] != ?# and line[0] != ?=)
+        i = line.index('=')
+        if (i)
+          properties[line[0..i - 1].strip] = line[i + 1..-1].strip
+        else
+          properties[line] = ''
+        end
+      end
+    end
+  end
+  properties
+end
+
+def tellexec(c)
+  puts "executing: #{c}"
+  system(c)
+end
+
+# sudo pacman -Fy   # downloads the files database (not needed every time)
+# pacman -Fs netstat
+# pacman -Fo /usr/bin/netstat
+
+def gentoo
+  case @action
+  when 'list'
+    tellexec("qlist -Iv")
+  else
+    puts "action #{@action} on #{@id_like} not supported yet!!!"
+  end
+end
+
+def archlinux
+  case @action
+  when 'search'
+    tellexec("pacman -Ss #{@args}")
+  when 'install'
+    tellexec("sudo pacman -S #{@args}")
+  when 'list'
+    tellexec("pacman -Qe")
+  else
+    puts "action #{@action} on #{@id_like} not supported yet!!!"
+  end
+end
+
+def redhat
+  case @action
+  when 'search'
+    tellexec("yum search #{@args}")
+  when 'install'
+    tellexec("sudo yum install #{@args}")
+  when 'list'
+    tellexec("rpm -qa --qf '%{name}-%{version}-%{release}.%{arch}.rpm\n' 2>&1 | sort")
+  else
+    puts "action #{@action} on #{@id_like} not supported yet!!!"
+  end
+end
+
+def debian
+  case @action
+  when 'search'
+    tellexec("apt search #{@args}")
+  when 'install'
+    tellexec("sudo apt install #{@args}")
+  when 'list'
+    tellexec("apt list --installed | sort")
+  else
+    puts "action #{@action} on #{@id_like} not supported yet!!!"
+  end
+end
+
+# TODO: check readabliity of os-relase
+@release = load_properties('/etc/os-release')
+
+if !@release.has_key?('ID_LIKE')
+  if !@release.has_key?('ID')
+    puts "Failed to determine os ID or ID_LIKE!!!"
+    exit 1
+  end
+  case @release['ID']
+  when 'fedora'
+    @id_like = 'redhat'
+  else
+    @id_like = 'unrecognized'
+  end
+else
+  @id_like = @release['ID_LIKE']
+end
+
+puts @id_like.inspect if @debug > 0
+
+case @id_like
+when /arch/
+  archlinux
+when /redhat/
+  redhat
+when /debian/
+  debian
+else
+  puts "ID_LIKE: #{@id_like} not supported yet!!!"
+  @errors +=1
+end
+
+exit @errors

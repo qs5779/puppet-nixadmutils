@@ -15,7 +15,6 @@ script:
 bundler_args: --without system_tests
 rvm:
   - 2.4.1
-  - 2.1.9
 env:
   - PUPPET_GEM_VERSION="~> 4.0" CHECK=spec
   - PUPPET_GEM_VERSION="~> 5.0" CHECK=spec

@@ -64,6 +64,14 @@ end
 @args = ARGV.join(' ')
 puts @args.inspect if @debug > 0
 
+def get_file_age(pathname)
+  if File.exist?(pathname)
+    age = Time.now.to_i - File.mtime(pathname).to_i
+  else
+    age = 0
+  end
+end
+
 def load_properties(properties_filename)
   properties = {}
   File.open(properties_filename, 'r') do |properties_file|
@@ -150,6 +158,8 @@ if !@release.has_key?('ID_LIKE')
   case @release['ID']
   when 'fedora'
     @id_like = 'redhat'
+  when 'gentoo'
+    @id_like = 'gentoo'
   else
     @id_like = 'unrecognized'
   end
@@ -166,6 +176,8 @@ when /redhat/
   redhat
 when /debian/
   debian
+when /gentoo/
+  gentoo
 else
   puts "ID_LIKE: #{@id_like} not supported yet!!!"
   @errors +=1

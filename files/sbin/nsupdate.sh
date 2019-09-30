@@ -87,7 +87,7 @@ shift $((OPTIND-1))
 
 # parsing host
 if [ -n "$1" ]; then
-        HOST=$1
+  HOST=$1
 else
   echo -e "missing host"
   echo

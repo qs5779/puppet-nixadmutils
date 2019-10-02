@@ -60,7 +60,12 @@ FAM=$(facter osfamily)
 
 case "$FAM" in
   Archlinux )
+    $PREFIX pacman-mirrors -f 5
     $PREFIX pacman -Syu
+    if [[ $(pacman -Q linux | cut -d " " -f 2) > $(uname -r) ]]
+    then
+      echo 'reboot required'
+    fi
   ;;
   Debian )
     $PREFIX apt update

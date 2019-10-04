@@ -46,7 +46,7 @@ then
 fi
 
 function refresh_package_lists {
-  typeset FLAG=/var/tmp/packages.refreshed.by.${$IAM}
+  typeset FLAG=/var/tmp/packages.refreshed.by.${IAM}
   typeset LAST NOW ELAPSED
   if [ -e "$FLAG" ]
   then
@@ -54,7 +54,7 @@ function refresh_package_lists {
     NOW=$(date '+%S')
     ELAPSED=$((NOW-LAST))
   else
-    ELAPSED=86400*14
+    ELAPSED=$((86400*14))
   fi
   if [ $ELAPSED -gt 86400 ]
   then
@@ -66,6 +66,7 @@ function refresh_package_lists {
           manjaro )
             LAST=$((86400*14))
             if [ $ELAPSED -ge $MAX ]
+            then
               sudo pacman-mirrors -c United_States
             fi
           ;;
@@ -182,42 +183,18 @@ function foo_installpkg {
 
   case "$ID_LIKE" in
     debian )
-      sudo apt install "$PARAM"
+      sudo apt install "$PARAM_1"
     ;;
     redhat )
-      sudo dnf install "$PARAM"
+      sudo dnf install "$PARAM_1"
     ;;
     gentoo )
       refresh_package_lists
-      sudo emerge --ask "$PARAM"
+      sudo emerge --ask "$PARAM_1"
     ;;
     arch )
       refresh_package_lists
-      sudo pacman -Sy "$PARAM"
-    ;;
-    * )
-      abend "Unsupported ID_LIKE: $ID_LIKE"
-    ;;
-  esac
-}
-
-function foo_installpkg {
-  [ -n "$PARAM_1" ] || abend "usage: $SCRIPT package_to_find"
-
-  case "$ID_LIKE" in
-    debian )
-      sudo apt install "$PARAM"
-    ;;
-    redhat )
-      sudo dnf install "$PARAM"
-    ;;
-    gentoo )
-      refresh_package_lists
-      sudo emerge --ask "$PARAM"
-    ;;
-    arch )
-      refresh_package_lists
-      sudo pacman -Sy "$PARAM"
+      sudo pacman -Sy "$PARAM_1"
     ;;
     * )
       abend "Unsupported ID_LIKE: $ID_LIKE"

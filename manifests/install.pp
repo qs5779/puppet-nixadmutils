@@ -87,7 +87,10 @@ class nixadmutils::install {
     }
   }
 
-  $absents = [ "${nixadmutils::nixadmutilsdir}/bin/fw-list" ]
+  $absents = [
+    "${nixadmutils::nixadmutilsdir}/bin/fw-list"
+    "${nixadmutils::nixadmutilsdir}/bin/pgklist"
+  ]
 
   $absents.each | String $a | {
 

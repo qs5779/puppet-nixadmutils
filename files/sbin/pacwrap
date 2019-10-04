@@ -1,0 +1,108 @@
+#!/bin/bash
+# -*- Mode: Bash; tab-width: 2; indent-tabs-mode: nil -*- vim:sta:et:sw=2:ts=2:syntax=sh
+#
+# Revision History:
+# 20190317 - que - initial version
+# 20190806 - que - gentoo support
+#
+
+$SCRIPT=$(basename "$0")
+
+PARAM_1="$1"
+PARAM_2="$2"
+
+function abend {
+  typeset M="$1"
+  echo "$1" >&2
+  exit 1
+}
+
+. '/etc/os-release' || abend "Failed to source /etc/os-release"
+
+if [ -z "$ID_LIKE" ]
+then
+  if [ -z "$ID" ]
+  then
+    abend "Failed to determine os ID or ID_LIKE!!!"
+  fi
+  case "$ID" in
+    fedora )
+      ID_LIKE=redhat
+    ;;
+    gentoo )
+      ID_LIKE=gentoo
+    ;;
+    * )
+      abend "Unrecognized ID from /etc/os-relase: $ID"
+    ;;
+  esac
+fi
+
+function refresh_package_lists {
+  typeset FLAG=/var/tmp/packages.refreshed.by.$(whoami)
+  typset LAST NOW ELAPSED
+  if [ -e "$FLAG" ]
+  then
+    LAST=$(date -r "$FLAG" '+%S')
+    NOW=$(date '+%S')
+    ELAPSED=$((NOW-LAST))
+  else
+    ELAPSED=86401
+  fi
+  if [ $ELAPSED -gt 86400 ]
+  then
+    # refresh the package list
+    case "$ID_LIKE" in
+      arch )
+        case "$ID" in
+          manjaro )
+            sudo pacman-mirrors -f 5
+          ;;
+          * )
+          ;;
+        esac
+      ;;
+      debian )
+        sudo apt-update
+      ;;
+      gentoo )
+        emerge-websync
+      ;;
+      * )
+      ;;
+    esac
+  fi
+}
+
+function foo_pacwrap {
+  abend "Use a supported symlink to call this script!!"
+}
+
+function foo_findpkg {
+  [ -n "$PARAM_1" ] || abend "usage: $SCRIPT package_to_find"
+
+  case "$ID_LIKE" in
+    debian )
+      apt list --installed | sort > "$tmpfile"
+      outfile='/var/log/aptpkgs'
+    ;;
+    redhat )
+      sudo dnf search "$PARAM"
+    ;;
+    gentoo )
+      refresh_package_lists
+      eix -S "$PARAM"
+    ;;
+    arch )
+      refresh_package_lists
+      pacman -Ssy "$PARAM"
+    ;;
+    * )
+      abend "Unsupported ID_LIKE: $ID_LIKE"
+    ;;
+  esac
+}
+
+foo_${SCRIPT}
+
+exit 0

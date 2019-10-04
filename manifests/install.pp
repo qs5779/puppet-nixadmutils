@@ -38,6 +38,16 @@ class nixadmutils::install {
       'sbin': {
         $group = $nixadmutils::wheelgroup
         $mode = '0754'
+
+        $pacwrap_links = ['findpkg', 'installpkg' ]
+
+        $pacwrap_links.each |$lnk| {
+          file {"${target}/${lnk}":
+            ensure  => link,
+            target  => 'pacwrap',
+            require => File[$target],
+          }
+        }
       }
       default: {
         $group = 'root'
@@ -85,4 +95,5 @@ class nixadmutils::install {
       ensure => 'absent',
     }
   }
+
 }

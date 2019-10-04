@@ -6,8 +6,8 @@
 #
 require 'getoptlong'
 
-basenm = File.basename( $0 )
-SCRDIR = File.dirname( $0 )
+basenm = File.basename($PROGRAM_NAME)
+SCRDIR = File.dirname($PROGRAM_NAME)
 
 # TODO: convert below perl to ruby
 
@@ -15,36 +15,36 @@ debug = 0
 verbose = 0
 
 errors = 0
-VERSION = '$Revision: 24951 $'
+VERSION = '$Revision: 24951 $'.freeze
 
 opts = GetoptLong.new(
-  [ '--debug', '-d', GetoptLong::NO_ARGUMENT ],
-  [ '--verbose', '-v', GetoptLong::NO_ARGUMENT ],
-  [ '--version', '-V', GetoptLong::NO_ARGUMENT ],
-  [ '--help', '--man', '-h', GetoptLong::NO_ARGUMENT ],
-#  [ '--repeat', '-n', GetoptLong::REQUIRED_ARGUMENT ],
-#  [ '--name', GetoptLong::OPTIONAL_ARGUMENT ]
+  ['--debug', '-d', GetoptLong::NO_ARGUMENT],
+  ['--verbose', '-v', GetoptLong::NO_ARGUMENT],
+  ['--version', '-V', GetoptLong::NO_ARGUMENT],
+  ['--help', '--man', '-h', GetoptLong::NO_ARGUMENT],
+  #  [ '--repeat', '-n', GetoptLong::REQUIRED_ARGUMENT ],
+  #  [ '--name', GetoptLong::OPTIONAL_ARGUMENT ]
 )
 
-opts.each do |opt, arg|
+opts.each do |opt, _arg|
   case opt
-    when '--help'
-      puts <<-EOM
-usage: #{basenm} [-d] [-h] [-v] [-V]
-  where:
-    -d specify debug mode
-    -h show this message and exit
-    -v add verbosity
-    -V show version and exit
+  when '--help'
+    puts <<-EOM
+  usage: #{basenm} [-d] [-h] [-v] [-V]
+    where:
+      -d specify debug mode
+      -h show this message and exit
+      -v add verbosity
+      -V show version and exit
 EOM
-      exit 0
-    when '--version'
-      puts "#{basenm} #{VERSION[/\d+/]}"
-      exit 0
-    when '--verbose'
-      debug += 1
-    when '--debug'
-      verbose += 1
+    exit 0
+  when '--version'
+    puts "#{basenm} #{VERSION[%r{\d+}]}"
+    exit 0
+  when '--verbose'
+    debug += 1
+  when '--debug'
+    verbose += 1
   end
 end
 
@@ -58,18 +58,17 @@ def load_properties(properties_filename)
   File.open(properties_filename, 'r') do |properties_file|
     properties_file.read.each_line do |line|
       line.strip!
-      if (line[0] != ?# and line[0] != ?=)
-        i = line.index('=')
-        if ! i.nil?
-          properties[line[0..i - 1].strip] = line[i + 1..-1].strip
-        end
+      next unless line[0] != '#' && line[0] != '='
+      i = line.index('=')
+      unless i.nil?
+        properties[line[0..i - 1].strip] = line[i + 1..-1].strip
       end
     end
   end
   properties
 end
 
-RCFILE = '/opt/nixadmutils/etc/nixadmutils.rc'
+RCFILE = '/opt/nixadmutils/etc/nixadmutils.rc'.freeze
 
 if File.readable?(RCFILE)
   phash = load_properties(RCFILE)
@@ -78,31 +77,22 @@ else
   exit 1
 end
 
-myos=`facter osfamily`
+myos = `facter osfamily`
 myos.chomp!
 
-case myos
-when 'Debian'
-  defrkhlog = '/var/log/rkhunter.log'
-  wheel = 'adm'
-else
-  defrkhlog = '/var/log/rkhunter/rkhunter.log'
-  wheel = 'wheel'
-end
+rkhlog =  if phash.key?('RKHUNTERLOG')
+            phash['RKHUNTERLOG']
+          else
+            case myos
+            when 'Debian'
+              '/var/log/rkhunter.log'
+            else
+              '/var/log/rkhunter/rkhunter.log'
+            end
+          end
 
-if phash.has_key?('RKHUNTERLOG')
-  rkhlog = phash['RKHUNTERLOG']
-else
-  case myos
-  when 'Debian'
-    rkhlog = '/var/log/rkhunter.log'
-  else
-    rkhlog = '/var/log/rkhunter/rkhunter.log'
-  end
-end
-
-if File.exists?(rkhlog)
-  if ! File.readable?(rkhlog)
+if File.exist?(rkhlog)
+  unless File.readable?(rkhlog)
     system("sudo chgrp #{wheel} #{rkhlog} ; sudo chmod g+r #{rkhlog}")
   end
 
@@ -111,19 +101,19 @@ if File.exists?(rkhlog)
       printing = 0
       rkhlog_file.read.each_line do |line|
         case line
-          when /Info: Start date/
-            puts line
-          when /Info: End date/
-            puts line
-            puts '----------------------------------------------------------------'
-          when /The system checks took:/
-            puts line
-          when /\[ Warning \]/
-            printing = 1
-          when /\[ OK \]/
-            printing = 0
-          when /Info:/
-            printing = 0
+        when %r{Info: Start date}
+          puts line
+        when %r{Info: End date}
+          puts line
+          puts '----------------------------------------------------------------'
+        when %r{The system checks took:}
+          puts line
+        when %r{\[ Warning \]}
+          printing = 1
+        when %r{\[ OK \]}
+          printing = 0
+        when %r{Info:}
+          printing = 0
         end
         if printing > 0
           puts line
@@ -141,5 +131,3 @@ else
 end
 
 exit errors
-
-

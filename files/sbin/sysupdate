@@ -1,10 +1,11 @@
 #!/bin/bash
-# -*- Mode: Bash; tab-width: 2; indent-tabs-mode: nil -*- vim:sta:et:sw=2:ts=2:syntax=sh
+# vim:sta:et:sw=2:ts=2:syntax=sh
 #
 # Revision History:
 # 20180526 - que - initial version
 # 20190806 - que - gentoo support
 # 20190817 - que - arch support
+# 20191022 - que - pacman-mirrors optional
 #
 
 SCRIPT=$(basename "$0")
@@ -60,7 +61,10 @@ FAM=$(facter osfamily)
 
 case "$FAM" in
   Archlinux )
-    $PREFIX pacman-mirrors -f 5
+    if [ -x /usr/bin/pacman-mirrors ]
+    then
+      $PREFIX pacman-mirrors -f 5
+    fi
     $PREFIX pacman -Syu
     if [[ $(pacman -Q linux | cut -d " " -f 2) > $(uname -r) ]]
     then

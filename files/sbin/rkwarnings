@@ -2,7 +2,7 @@
 # -*- Mode: Ruby; tab-width: 2; indent-tabs-mode: nil -*- vim:sta:et:sw=2:ts=2:syntax=ruby
 #
 # Revision History:
-# YYYYmmdd - whoami - initial version
+# 20191028 - que - set wheel variable based on os family
 #
 require 'getoptlong'
 
@@ -15,7 +15,7 @@ debug = 0
 verbose = 0
 
 errors = 0
-VERSION = '$Revision: 24951 $'.freeze
+VERSION = '$Revision: 1.0.1 $'.freeze
 
 opts = GetoptLong.new(
   ['--debug', '-d', GetoptLong::NO_ARGUMENT],
@@ -79,6 +79,13 @@ end
 
 myos = `facter osfamily`
 myos.chomp!
+
+wheel = case myos
+        when 'Debian'
+          'sudo'
+        else
+          'wheel'
+        end
 
 rkhlog =  if phash.key?('RKHUNTERLOG')
             phash['RKHUNTERLOG']

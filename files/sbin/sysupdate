@@ -6,10 +6,11 @@
 # 20190806 - que - gentoo support
 # 20190817 - que - arch support
 # 20191022 - que - pacman-mirrors optional
+# 20191030 - que - use --preserve-env for proxy when sudo
 #
 
 SCRIPT=$(basename "$0")
-VERSION='$Revision: 0.1.1 $'
+VERSION='$Revision: 0.1.2 $'
 VERBOSE=0
 DEBUG=0
 ERRORS=0
@@ -51,7 +52,7 @@ shift $((OPTIND - 1))
 
 if [ "$(whoami)" != "root" ]
 then
-  PREFIX=sudo
+  PREFIX='sudo --preserve-env=http_proxy,ftp_proxy'
 else
   PREFIX=''
 fi

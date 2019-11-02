@@ -52,7 +52,7 @@ shift $((OPTIND - 1))
 
 if [ "$(whoami)" != "root" ]
 then
-  PREFIX='sudo --preserve-env=http_proxy,ftp_proxy'
+  PREFIX='sudo --preserve-env' #=http_proxy,ftp_proxy'
 else
   PREFIX=''
 fi

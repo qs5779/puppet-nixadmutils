@@ -24,7 +24,8 @@ then
   abend "You must be root ( or sudo ) to run $SCRIPT"
 fi
 
-. '/etc/os-release' || abend "Failed to source /etc/os-release"
+OSR=/etc/os-release
+. $OSR || abend "Failed to source $OSR"
 
 if [ -z "$ID_LIKE" ]
 then
@@ -39,8 +40,11 @@ then
     gentoo )
       ID_LIKE=gentoo
     ;;
+    debian )
+      ID_LIKE=debian
+    ;;
     * )
-      abend "Unrecognized ID from /etc/os-relase: $ID"
+      abend "Unrecognized ID from $OSR: $ID"
     ;;
   esac
 fi

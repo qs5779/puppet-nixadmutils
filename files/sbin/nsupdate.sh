@@ -124,7 +124,7 @@ if [ -z "$RDATA" ] ; then
       echo "You must provide an interface to update a ipv6 address!!!"
       exit 1
     fi
-    RDATA=$(curl -s 'http://checkip.dyndns.org' | sed 's/.*Current IP Address: \([0-9\.]\{7,15\}\).*/\1/')
+    RDATA=$(-s ipv4bot.whatismyipaddress.com)
   else
     RDATA=$(ip -o -$VER address show dev $IF | sed -nr 's/.*inet6? ([^/ ]+).*/\1/p' | grep -v ^f[ec])
   fi

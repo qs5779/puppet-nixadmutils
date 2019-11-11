@@ -39,7 +39,7 @@ class nixadmutils::install {
         $group = $nixadmutils::wheelgroup
         $mode = '0754'
 
-        $pacwrap_links = ['findpkg', 'installpkg', 'pkglist', 'listpkgs' ]
+        $pacwrap_links = ['findpkg', 'installpkg', 'pkglist', 'listpkgs', 'pkgfiles' ]
 
         $pacwrap_links.each |$lnk| {
           file {"${target}/${lnk}":

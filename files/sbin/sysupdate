@@ -83,8 +83,8 @@ case "$FAM" in
       check_ticker
       if [ $? -ne 0 ]
       then
-        $PREFIX touch $TICKER
         $PREFIX pacman-mirrors -f 5
+        $PREFIX touch $TICKER
       fi
     fi
     $PREFIX pacman -Syu
@@ -116,8 +116,9 @@ case "$FAM" in
     check_ticker
     if [ $? -ne 0 ]
     then
+      $PREFIX rm -f /root/last.emerge.sync # remove old ticker if needed
       $PREFIX emerge --sync
-      touch "$TICKER"
+      $PREFIX touch "$TICKER"
     fi
     $PREFIX emerge -avuDN --with-bdeps y --keep-going world
     # $PREFIX etc-update # or dispatch-conf

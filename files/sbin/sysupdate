@@ -57,14 +57,35 @@ else
   PREFIX=''
 fi
 
+TICKER=/tmp/${SCRIPT}.ticker
 FAM=$(facter osfamily)
 #MDR=$(facter operatingsystemmajrelease)
+
+function check_ticker {
+  RC=1
+  if $PREFIX test -f "$TICKER"
+  then
+    LAST=$($PREFIX date -r "$TICKER")
+    NOW=$(date '+%S')
+    ELAPSED=$((NOW-LAST))
+    if [ $ELAPSED -lt 86400 ]
+    then
+      RC=0
+    fi
+  fi
+  return $RC
+}
 
 case "$FAM" in
   Archlinux )
     if [ -x /usr/bin/pacman-mirrors ]
     then
-      $PREFIX pacman-mirrors -f 5
+      check_ticker
+      if [ $? -ne 0 ]
+      then
+        $PREFIX touch $TICKER
+        $PREFIX pacman-mirrors -f 5
+      fi
     fi
     $PREFIX pacman -Syu
     if [[ $(pacman -Q linux | cut -d " " -f 2) > $(uname -r) ]]
@@ -92,18 +113,9 @@ case "$FAM" in
     echo "needs-retarting exited with: $RC"
   ;;
   Gentoo )
-    TICKER=/root/last.emerge.sync
-    if $PREFIX test -f "$TICKER"
+    check_ticker
+    if [ $? -ne 0 ]
     then
-      LAST=$($PREFIX date -r "$TICKER")
-      NOW=$(date '+%S')
-      ELAPSED=$((NOW-LAST))
-      if [ $ELAPSED -gt 86400 ]
-      then
-        $PREFIX emerge --sync
-        touch "$TICKER"
-      fi
-    else
       $PREFIX emerge --sync
       touch "$TICKER"
     fi

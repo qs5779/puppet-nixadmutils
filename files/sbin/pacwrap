@@ -49,6 +49,16 @@ then
   esac
 fi
 
+for id in $ID_LIKE
+do
+  case "$id" in
+    arch|archlinux )
+      ID_LIKE=arch
+      break
+    ;;
+  esac
+done
+
 function refresh_package_lists {
   typeset FLAG=/var/tmp/packages.refreshed.by.${IAM}
   typeset LAST NOW ELAPSED

@@ -104,7 +104,28 @@ function foo_pacwrap {
   abend "Use a supported symlink to call this script!!"
 }
 
+function foo_pkgfile {
+  [ -n "$PARAM_1" ] || abend "usage: $SCRIPT pathname"
 
+  case "$ID_LIKE" in
+    debian )
+      sudo dpkg -L "$PARAM_1"
+    ;;
+    redhat )
+      sudo rpm -qf "$PARAM_1"
+    ;;
+    # gentoo )
+    #   refresh_package_lists
+    #   sudo eix -S "$PARAM_1"
+    # ;;
+    arch )
+      sudo pacman -Qo "$PARAM_1"
+    ;;
+    * )
+      abend "Unsupported ID_LIKE: $ID_LIKE"
+    ;;
+  esac
+}
 
 function foo_pkgfiles {
   [ -n "$PARAM_1" ] || abend "usage: $SCRIPT package_to_list"

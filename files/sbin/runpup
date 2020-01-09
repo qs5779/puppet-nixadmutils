@@ -122,6 +122,15 @@ then
   OPTIONS="$OPTIONS --server=${SERVER} --confdir=${CFGDIR}"
 fi
 
+if file "$(readlink -f "$PUPPET")" | grep -i 'ruby script'
+then
+  if sudo test -f /root/flags/nowarn.puppet
+  then
+    # suppress deprecation warnings for ruby v2.7 touch /root/flags/nowarn.puppet
+    PUPPET="ruby -W0 $PUPPET"
+  fi
+fi
+
 #puppet agent --test 2>&1 | tee ${HOME}/agent.out
 COMMAND="sudo $PUPPET agent --detailed-exitcodes $OPTIONS"
 echo "$SCRIPT: $VERSION"

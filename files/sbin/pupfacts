@@ -102,6 +102,15 @@ fi
 #   fi
 # fi
 
+if file "$(readlink -f "$PUPPET")" | grep -i 'ruby script'
+then
+  if $SUDO test -f /root/flags/nowarn.puppet
+  then
+    # suppress deprecation warnings for ruby v2.7 touch /root/flags/nowarn.puppet
+    PUPPET="ruby -W0 $PUPPET"
+  fi
+fi
+
 tmpfile=$(/bin/mktemp /tmp/facts.XXXXXXXXX) || exit 1
 $SUDO $PUPPET facts $EPARAM > "$tmpfile"
 

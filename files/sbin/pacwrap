@@ -109,7 +109,7 @@ function foo_pkgfile {
 
   case "$ID_LIKE" in
     debian )
-      sudo dpkg -L "$PARAM_1"
+      sudo dpkg -S "$PARAM_1"
     ;;
     redhat )
       sudo rpm -qf "$PARAM_1"

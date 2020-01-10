@@ -102,7 +102,7 @@ fi
 #   fi
 # fi
 
-if file "$(readlink -f "$PUPPET")" | grep -i 'ruby script'
+if file "$(readlink -f "$PUPPET")" | grep -qi 'ruby script'
 then
   if $SUDO test -f /root/flags/nowarn.puppet
   then

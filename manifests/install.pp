@@ -41,11 +41,10 @@ class nixadmutils::install {
 
         $pacwrap_links = ['findpkg', 'installpkg', 'pkglist', 'listpkgs', 'pkgfiles' ]
 
+        # now using pacwrap gem
         $pacwrap_links.each |$lnk| {
           file {"${target}/${lnk}":
-            ensure  => link,
-            target  => 'pacwrap',
-            require => File[$target],
+            ensure  => absent,
           }
         }
       }
@@ -77,7 +76,7 @@ class nixadmutils::install {
   $sbin = "${nixadmutils::nixadmutilsdir}/sbin"
 
   $links = {
-    "${sbin}/lspuppet" => 'puppet-ls'
+    "${sbin}/lspuppet" => 'puppet-ls',
   }
 
   $links.each | String $l, String $t | {
@@ -89,7 +88,8 @@ class nixadmutils::install {
 
   $absents = [
     "${nixadmutils::nixadmutilsdir}/bin/fw-list",
-    "${nixadmutils::nixadmutilsdir}/bin/pkglist"
+    "${nixadmutils::nixadmutilsdir}/bin/pkglist",
+    "${nixadmutils::nixadmutilsdir}/sbin/pacwrap",
   ]
 
   $absents.each | String $a | {

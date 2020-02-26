@@ -13,6 +13,7 @@ VERBOSE=0
 OPTIONS='--test'
 ERRORS=0
 SERVER=''
+OUTNM=agent
 
 function usage {
   cat << EOM
@@ -23,6 +24,7 @@ usage: $SCRIPT [-d] [-e env] [-g] [-h] [-n] [-S server] [-v] [-V]
     -g specify --graph
     -h show this message and exit
     -n specify dry-run/noop mode
+    -o specify alternate output name ( default agent )
     -S specify alternate server
     -v add verbosity
     -V show version and exit
@@ -46,7 +48,7 @@ function add_option {
   fi
 }
 
-while getopts ":de:ghnS:vVw" opt
+while getopts ":de:ghno:S:vVw" opt
 do
   case "$opt" in
     d )
@@ -64,6 +66,9 @@ do
     ;;
     n )
       add_option "--noop"
+    ;;
+    o )
+      OUTNM="$OPTARG"
     ;;
     S )
       SERVER="$OPTARG"
@@ -131,13 +136,13 @@ then
   fi
 fi
 
-#puppet agent --test 2>&1 | tee ${HOME}/agent.out
+#puppet agent --test 2>&1 | tee ${HOME}/${OUTNM}.out
 COMMAND="sudo $PUPPET agent --detailed-exitcodes $OPTIONS"
 echo "$SCRIPT: $VERSION"
 echo "executing: $COMMAND"
-$COMMAND > >(tee ${HOME}/agent.out) 2> >(tee ${HOME}/agent.err >&2)
+$COMMAND > >(tee ${HOME}/${OUTNM}.out) 2> >(tee ${HOME}/${OUTNM}.err >&2)
 RC=$?
-echo "stdout saved in  ${HOME}/agent.out"
+echo "stdout saved in  ${HOME}/${OUTNM}.out"
 
 case "$RC" in
   0 )
@@ -164,9 +169,9 @@ case "$RC" in
 esac
 
 echo "$MSG"
-if [ -s ${HOME}/agent.err ]
+if [ -s ${HOME}/${OUTNM}.err ]
 then
-  cat ${HOME}/agent.err
+  cat ${HOME}/${OUTNM}.err
 fi
 
 exit $RC

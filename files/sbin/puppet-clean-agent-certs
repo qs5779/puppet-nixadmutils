@@ -1,0 +1,104 @@
+#!/bin/bash
+# -*- Mode: Bash; tab-width: 2; indent-tabs-mode: nil -*- vim:sta:et:sw=2:ts=2:syntax=sh
+# Revision History:
+# 20200224 - que - initial version
+#
+
+SCRIPT=$(basename "$0")
+VERSION='1.0.0'
+VERBOSE=0
+DEBUG=0
+ERRORS=0
+
+function usage {
+  cat << EOM
+usage: $SCRIPT [-d] [-h] [-l] [-v] [-V]
+  where:
+    -d specify debug mode
+    -h show this message and exit
+    -l show last (most recent) run only
+    -v add verbosity
+    -V show version and exit
+EOM
+  exit 1
+}
+
+while getopts ":dhlvV" opt
+do
+  case "$opt" in
+    d )
+      ((DEBUG+=1))
+      ((VERBOSE+=1))
+    ;;
+    h )
+      usage
+    ;;
+    l ) ((LAST+=1)) ;;
+    v ) ((VERBOSE+=1)) ;;
+    V )
+      echo "$SCRIPT VERSION: $VERSION"
+      exit 0
+    ;;
+    * )
+      echo "Unexpected option \"$opt\""
+      usage
+    ;;
+  esac
+done
+shift $((OPTIND - 1))
+
+if [ "$(whoami)" != "root" ]
+then
+  echo "You must be root to run this script. Try 'sudo $SCRIPT'" >&2
+  exit 1
+fi
+
+PUPSSL=$(puppet config print ssldir)
+
+if test -d "$PUPSSL"
+then
+  case "$PUPSSL" in
+    *puppet* )
+      BUD=/root/puppet-agent-cert-backup/$(date '+%Y%m%d')
+
+      if [ ! -d "$BUD" ]
+      then
+        mkdir -p "$BUD"
+        if test -d "${PUPSSL}/ca/signed"
+        then
+          CERTNAME=$(puppet config print certname)
+          echo "This appears to be a ceritifcate server. Only deleting agent keys matching $CERTNAME"
+          for sd in certs private_keys public_keys
+          do
+            cd "${PUPSSL}"
+            for f in $(find $sd -type f -name $CERTNAME\*)
+            do
+              mkdir "${BUD}/${sd}"
+              mv "$f" "${BUD}/${sd}"
+            done
+          done
+        else
+          rsync -av --delete "${PUPSSL}/" "${BUD}/"
+          cd "$PUPSSL"
+          if [ $? -eq 0 ]
+          then
+            rm -fr *
+          fi
+        fi
+      else
+        echo "Sanity test failed. Backup directory already exists: $BUD" >&2
+        echo "Delete or rename existing backup directory: $BUD" >&2
+        ((ERRORS+=1))
+      fi
+    ;;
+    * )
+      echo "Sanity test failed. Word puppet not found in puppet ssldir variable: $PUPSSL" >&2
+      ((ERRORS+=1))
+    ;;
+  esac
+else
+  echo "Directory not found: $PUPSSL" >&2
+  ((ERRORS+=1))
+fi
+
+exit $ERRORS

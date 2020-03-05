@@ -2,9 +2,10 @@
 # -*- Mode: Bash; tab-width: 2; indent-tabs-mode: nil -*- vim:sta:et:sw=2:ts=2:syntax=sh
 #
 # Revision History:
-# 20160825 - quiensabe - initial version
-# 20160901 - quiensabe - capture stderr in tee
-# 20161005 - quiensabe - ensure puppet path
+# 20160825 - que - initial version
+# 20160901 - que - capture stderr in tee
+# 20161005 - que - ensure puppet path
+# 20200305 - que - quieter when no terminal
 #
 
 SCRIPT=$(basename "$0")
@@ -136,42 +137,48 @@ then
   fi
 fi
 
-#puppet agent --test 2>&1 | tee ${HOME}/${OUTNM}.out
-COMMAND="sudo $PUPPET agent --detailed-exitcodes $OPTIONS"
-echo "$SCRIPT: $VERSION"
-echo "executing: $COMMAND"
-$COMMAND > >(tee ${HOME}/${OUTNM}.out) 2> >(tee ${HOME}/${OUTNM}.err >&2)
-RC=$?
-echo "stdout saved in  ${HOME}/${OUTNM}.out"
-
-case "$RC" in
-  0 )
-    MSG="The run succeeded with no changes or failures."
-  ;;
-  1 )
-    MSG="The run failed, or wasn't attempted due to another run already in progress."
-  ;;
-  2 )
-    MSG="The run succeeded, and some resources were changed."
-    RC=0
-  ;;
-  4 )
-    MSG="The run succeeded, and some resources failed."
-    RC=0
-  ;;
-  6 )
-    MSG="The run succeeded, and included both changes and failures."
-    RC=0
-  ;;
-  * )
-    MSG="The run exited with $RC"
-  ;;
-esac
-
-echo "$MSG"
-if [ -s ${HOME}/${OUTNM}.err ]
+if [ -t 1 ]
 then
-  cat ${HOME}/${OUTNM}.err
+  #puppet agent --test 2>&1 | tee ${HOME}/${OUTNM}.out
+  COMMAND="sudo $PUPPET agent --detailed-exitcodes $OPTIONS"
+  echo "$SCRIPT: $VERSION"
+  echo "executing: $COMMAND"
+  $COMMAND > >(tee ${HOME}/${OUTNM}.out) 2> >(tee ${HOME}/${OUTNM}.err >&2)
+  RC=$?
+  echo "stdout saved in  ${HOME}/${OUTNM}.out"
+
+  case "$RC" in
+    0 )
+      MSG="The run succeeded with no changes or failures."
+    ;;
+    1 )
+      MSG="The run failed, or wasn't attempted due to another run already in progress."
+    ;;
+    2 )
+      MSG="The run succeeded, and some resources were changed."
+      RC=0
+    ;;
+    4 )
+      MSG="The run succeeded, and some resources failed."
+      RC=0
+    ;;
+    6 )
+      MSG="The run succeeded, and included both changes and failures."
+      RC=0
+    ;;
+    * )
+      MSG="The run exited with $RC"
+    ;;
+  esac
+
+  echo "$MSG"
+  if [ -s ${HOME}/${OUTNM}.err ]
+  then
+    cat ${HOME}/${OUTNM}.err
+  fi
+else
+  sudo $PUPPET agent --detailed-exitcodes --no-daemonize --onetime --logdest syslog $OPTIONS
+  RC=$?
 fi
 
 exit $RC

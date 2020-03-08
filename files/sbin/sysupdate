@@ -88,8 +88,12 @@ case "$FAM" in
       fi
     fi
     $PREFIX pacman -Syu
-    if [[ $(pacman -Q linux | cut -d " " -f 2) > $(uname -r) ]]
+    NEW=$(pacman -Q linux | cut -d " " -f 2 | tr '-' '.')
+    OLD=$(uname -r | tr '-' '.')
+    if [[ "$NEW" != "$OLD" ]]
     then
+      echo "new kernel: $NEW"
+      echo "cur kernel: $OLD"
       echo 'reboot required'
     fi
   ;;

@@ -23,6 +23,7 @@ describe 'nixadmutils' do
       it { is_expected.to contain_file('/opt/nixadmutils/sbin/pacwrap') }
       it { is_expected.to contain_file('/opt/nixadmutils/sbin/pkgfiles') }
       it { is_expected.to contain_file('/opt/nixadmutils/sbin/pkglist') }
+      it { is_expected.to contain_file('/opt/nixadmutils/build/bin/gitx') }
       it { is_expected.to contain_exec('/opt/nixadmutils/bin') }
       it { is_expected.to contain_exec('/opt/nixadmutils/build') }
       it { is_expected.to contain_exec('/opt/nixadmutils/sbin') }

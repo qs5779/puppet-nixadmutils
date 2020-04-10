@@ -77,6 +77,7 @@ class nixadmutils::install {
 
   $links = {
     "${sbin}/lspuppet" => 'puppet-ls',
+    "${nixadmutils::nixadmutilsdir}/build/bin/gitx" => 'gitnox',
   }
 
   $links.each | String $l, String $t | {

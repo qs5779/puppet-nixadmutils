@@ -50,6 +50,9 @@ do
 done
 shift $((OPTIND - 1))
 
+[[ -f /etc/sysupdaterc ]] && . /etc/sysupdaterc
+[[ -f ${HOME}/.sysupdaterc ]] && . ${HOME}/.sysupdaterc
+
 if [ "$(whoami)" != "root" ]
 then
   PREFIX='sudo --preserve-env' #=http_proxy,ftp_proxy'
@@ -89,7 +92,7 @@ case "$FAM" in
     fi
     $PREFIX pacman -Syu
     NEW=$(pacman -Q linux | cut -d " " -f 2 | tr '-' '.')
-    OLD=$(uname -r | tr '-' '.')
+    OLD=$(uname -r | tr '-' '.' | sed -re 's/\.(MANJARO|ARCH)$//')
     if [[ "$NEW" != "$OLD" ]]
     then
       echo "new kernel: $NEW"

@@ -80,7 +80,7 @@ function check_ticker {
 }
 
 case "$FAM" in
-  Archlinux )
+  Arch* )
     if [ -x /usr/bin/pacman-mirrors ]
     then
       check_ticker

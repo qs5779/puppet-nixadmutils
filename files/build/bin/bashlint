@@ -8,15 +8,29 @@
 # Revision History:
 # 20150126 - richarjt - initial version
 # 20150228 - richarjt - bash does not support -w
+# 20201026 - richarjt - prefer shellcheck
 #
 
 ERRORS=0
+
+if command -v shellcheck >/dev/null 2>&1
+then
+  OLDWAY=0
+else
+  OLDWAY=1
+fi
 
 while [ -n "$1" ]
 do
   if [ -r "$1" ]
   then
-    bash -n -c $1
+    if [ $OLDWAY -ne 0 ]
+    then
+      bash -n -c "$1"
+    else
+      shellcheck "$1"
+    fi
+    # shellcheck disable=SC2181
     if [ $? -ne 0 ]
     then
       ((ERRORS+=1))
@@ -30,4 +44,4 @@ do
   shift
 done
 
-exit $ERRORS
+exit "$ERRORS"

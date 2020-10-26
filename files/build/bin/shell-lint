@@ -1,29 +1,43 @@
-#!/bin/sh
+#!/bin/ksh
 # -*- Mode: Bash; tab-width: 2; indent-tabs-mode: nil -*- vim:sta:et:sw=2:ts=2:syntax=sh
 #
 # Revision History:
 # 20150126 - richarjt - initial version
-# 20150228 - richarjt - bash does not support -w
+# 20150228 - richarjt - -w not supported on my ksh's
+# 20201026 - richarjt - prefer shellcheck
 #
 
 ERRORS=0
+
+if type shellcheck >/dev/null 2>&1
+then
+  OLDWAY=0
+else
+  OLDWAY=1
+fi
 
 while [ -n "$1" ]
 do
   if [ -r "$1" ]
   then
-    sh -n $1
+    if [ $OLDWAY -ne 0 ]
+    then
+      sh -n "$1"
+    else
+      shellcheck "$1"
+    fi
+    # shellcheck disable=SC2181
     if [ $? -ne 0 ]
     then
-      ERRORS=$((ERRORS+=1))
+      ((ERRORS+=1))
     else
       echo "$1 syntax OK"
     fi
   else
     echo "File not (found|readable): $1"
-    ERRORS=$((ERRORS+=1))
+    ((ERRORS+=1))
   fi
   shift
 done
 
-exit $ERRORS
+exit "$ERRORS"

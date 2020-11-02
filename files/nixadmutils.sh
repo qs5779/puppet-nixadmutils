@@ -17,4 +17,15 @@ then
   done
 fi
 
+if [[ -d "/opt/nixadmutils/lib/python" ]]
+then
+  if [[ -n "$PYTHONPATH" ]]
+  then
+    PYTHONPATH="/opt/nixadmutils/lib/python:${PYTHONPATH}"
+  else
+    PYTHONPATH=/opt/nixadmutils/lib/python
+  fi
+  export PYTHONPATH
+fi
+
 export PATH

@@ -8,6 +8,10 @@
 #   include nixadmutils::install
 class nixadmutils::install {
 
+  package { 'distro':
+    ensure   => 'present',
+    provider => 'yuavpip',
+  }
 
   ['sh', 'csh'].each | String $ext | {
     file { "/etc/profile.d/nixadmutils.${ext}":

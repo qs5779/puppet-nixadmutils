@@ -4,6 +4,3 @@ fixtures:
     stdlib:
       repo: puppetlabs-stdlib
       ref: 6.3.0
-    pip:
-      repo: yuav-pip
-      ref: 0.2.0

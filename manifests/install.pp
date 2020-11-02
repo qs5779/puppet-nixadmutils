@@ -8,9 +8,12 @@
 #   include nixadmutils::install
 class nixadmutils::install {
 
-  package { 'distro':
-    ensure   => 'present',
-    provider => 'yuavpip',
+  ensure_packages(['python-pip'], { ensure => present })
+
+  exec {'pip install distro':
+    path   => ['/usr/local/bin', '/usr/bin', '/bin'],
+    unless => 'pip show distro > /dev/null',
+    require => Package['python-pip']
   }
 
   ['sh', 'csh'].each | String $ext | {

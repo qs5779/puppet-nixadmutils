@@ -8,16 +8,23 @@
 #   include nixadmutils::install
 class nixadmutils::install {
 
-  ensure_packages(['python-distro'], { ensure => present })
-  # ensure_packages(['python-pip'], { ensure => present })
+  $packages = lookup('nixadmutils::required_packages', Array[String])
+  ensure_packages($packages, { ensure => present })
 
-  # # I had no luck with the on pip provider I tried 'yuav-pip'
-  # # and no patience to fix it. So I am using an exec
-  # exec {'pip install distro':
-  #   path    => ['/usr/local/bin', '/usr/bin', '/bin'],
-  #   unless  => 'pip show distro > /dev/null',
-  #   require => Package['python-pip']
-  # }
+  $pips = lookup('nixadmutils::required_packages', Array[String], first, [])
+
+  unless empty($pips) {
+    # I had no luck with the on pip provider I tried 'yuav-pip'
+    # and no patience to fix it. So I am using an exec
+    $pip = $packages = lookup('nixadmutils::pip_command', String)
+    $pips.each | String $pkg | {
+      exec {"${pip} install ${pkg}":
+        path    => ['/usr/local/bin', '/usr/bin', '/bin'],
+        unless  => "${pip} show ${pkg} > /dev/null",
+        require => Package[$packages]
+      }
+    }
+  }
 
   ['sh', 'csh'].each | String $ext | {
     file { "/etc/profile.d/nixadmutils.${ext}":

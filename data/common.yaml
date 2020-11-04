@@ -1,0 +1,6 @@
+---
+
+nixadmutils::pip_command: pip
+
+nixadmutils::required_packages:
+  - python-distro

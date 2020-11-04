@@ -42,4 +42,4 @@ branches:
     - master
     - /^v\d/
 notifications:
-  email: true
+  email: false

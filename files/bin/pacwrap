@@ -43,11 +43,16 @@ def main():
 
   args_nbr = len(args)
   if args_nbr < 1:
-    print('ParameterError: Missing parameter.', file=sys.stderr)
+    sys.stderr.write("ParameterError: Missing parameter.\n")
     parser.print_help()
     exit(1)
 
-  oslike = distro.like()
+  osid = distro.id()
+
+  if osid == 'debian':
+    oslike = osid
+  else:
+    oslike = distro.like()
 
   if oslike == 'arch':
     handler = pkgmgrs.PacmanHandler(options)
@@ -60,13 +65,13 @@ def main():
     else:
       handler = pkgmgrs.DnfHandler(options)
   else:
-    print('Unsupported distro like => ' + oslike, file=sys.stderr)
+    sys.stderr.write("Unsupported distro like => %s\n" % oslike)
     exit(1)
 
   try:
     exit(handler.action(args.pop(0), args))
   except pkgmgrs.UsageError as ex:
-    print('UsageErrror: %s!!!' % ex.message, file=sys.stderr)
+    sys.stderr.write("UsageErrror: %s!!!" % ex.messager)
     parser.print_help()
     exit(1)
 

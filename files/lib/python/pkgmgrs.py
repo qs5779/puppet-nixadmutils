@@ -26,6 +26,8 @@ class PackageHandler:
       'test': False
     }
     self.options.update(opts)
+    if self.options['test']:
+      print('created instance of class %s' % self.__class__.__name__)
 
   def requires_super_user(self):
     if os.geteuid() != 0:
@@ -39,7 +41,7 @@ class PackageHandler:
       raise UsageError('action %s requires exactly %d arguments' % (action, expected))
 
   def unhandled(self, action):
-    print("class %s doesn't handle a file %s!" % (type(self).__name__, action))
+    print("class %s doesn't handle a file %s!" % (self.__class__.__name__, action))
     return 1
 
   def file_action(self, args):
@@ -115,10 +117,6 @@ class PackageHandler:
     return os.system(cmd)
 
 class PacmanHandler(PackageHandler):
-  def __init__(self, opts={}):
-    super().__init__(opts)
-    if self.options['test']:
-      print('created instance of PacmanHandler')
 
   def list_package(self, args):
     return self.output_if('pacman -Ql %s' % args[0])
@@ -158,10 +156,6 @@ class PacmanHandler(PackageHandler):
     return self.execute(cmd)
 
 class AptHandler(PackageHandler):
-  def __init__(self, opts={}):
-    super().__init__(opts)
-    if self.options['test']:
-      print('created instance of AptHandler')
 
   def list_package(self, args):
     return self.output_if('dpkg -L %s' % args[0])
@@ -204,10 +198,8 @@ class AptHandler(PackageHandler):
 
 class YumHandler(PackageHandler):
   def __init__(self, opts={}):
-    super().__init__(opts)
+    PackageHandler.__init__(self, opts) # python2 compatibility
     self.pkgcmd = 'yum'
-    if self.options['test']:
-      print('created instance of YumHandler')
 
   def list_package(self, args):
     return self.output_if('rpm -ql %s' % args[0])
@@ -247,7 +239,7 @@ class YumHandler(PackageHandler):
 
 class DnfHandler(YumHandler):
   def __init__(self, opts={}):
-    super().__init__(opts)
+    YumHandler.__init__(self, opts) # python2 compatibility
     self.pkgcmd = 'dnf'
     if self.options['test']:
       print('created instance of DnfHandler')

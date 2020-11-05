@@ -8,23 +8,30 @@
 #   include nixadmutils::install
 class nixadmutils::install {
 
-  $packages = lookup('nixadmutils::required_packages', Array[String])
-  ensure_packages($packages, { ensure => present })
+  notify{"pip_version: ${facts['pip_version']}": }
+  notify{"pip2_version: ${facts['pip_version']}": }
+  notify{"pip3_version: ${facts['pip_version']}": }
+  notify{"python_version: ${facts['python_version']}": }
+  notify{"python2_version: ${facts['python2_version']}": }
+  notify{"python3_version: ${facts['python3_version']}": }
 
-  $pips = lookup('nixadmutils::required_packages', Array[String], first, [])
+  # $packages = lookup('nixadmutils::required_packages', Array[String])
+  # ensure_packages($packages, { ensure => present })
 
-  unless empty($pips) {
-    # I had no luck with the on pip provider I tried 'yuav-pip'
-    # and no patience to fix it. So I am using an exec
-    $pip = $packages = lookup('nixadmutils::pip_command', String)
-    $pips.each | String $pkg | {
-      exec {"${pip} install ${pkg}":
-        path    => ['/usr/local/bin', '/usr/bin', '/bin'],
-        unless  => "${pip} show ${pkg} > /dev/null",
-        require => Package[$packages]
-      }
-    }
-  }
+  # $pips = lookup('nixadmutils::required_packages', Array[String], first, [])
+
+  # unless empty($pips) {
+  #   # I had no luck with the on pip provider I tried 'yuav-pip'
+  #   # and no patience to fix it. So I am using an exec
+  #   $pip = $packages = lookup('nixadmutils::pip_command', String)
+  #   $pips.each | String $pkg | {
+  #     exec {"${pip} install ${pkg}":
+  #       path    => ['/usr/local/bin', '/usr/bin', '/bin'],
+  #       unless  => "${pip} show ${pkg} > /dev/null",
+  #       require => Package[$packages]
+  #     }
+  #   }
+  # }
 
   ['sh', 'csh'].each | String $ext | {
     file { "/etc/profile.d/nixadmutils.${ext}":

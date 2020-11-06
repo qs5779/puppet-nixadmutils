@@ -1,0 +1,52 @@
+#!/usr/bin/env python
+# -*- Mode: Python; tab-width: 2; indent-tabs-mode: nil -*-
+
+import sys
+import os.path
+import mwtfscribe
+# from syslog import (LOG_EMERG, LOG_ALERT, LOG_CRIT, LOG_ERR,
+#                     LOG_WARNING, LOG_NOTICE, LOG_INFO, LOG_DEBUG)
+from logging import (CRITICAL, ERROR, WARNING, INFO, DEBUG, NOTSET)
+from optparse import OptionParser
+
+def main():
+  basenm = os.path.basename(sys.argv[0])
+  # usage = "usage: %prog [options] message"
+  usage = "usage: " + basenm + " [options] message"
+  parser = OptionParser(usage)
+  parser.add_option("-d", "--debug", action="store_const", dest="level", const=DEBUG, help='specify error type')
+  parser.add_option("-e", "--error", action="store_const", dest="level", const=ERROR, help='specify error type')
+  parser.add_option("-f", "--fatal", action="store_const", dest="level", const=CRITICAL, help='specify fatal type')
+  parser.add_option("-l", "--logfile", action="store", dest="logfile", help='specify logfile to use')
+  parser.add_option("-L", "--loud", action="store_true", dest="loud", default=False, help='specify output to stdout even if not terminal')
+  parser.add_option("-m", "--info", action="store_const", dest="level", const=INFO, default=INFO, help='specify info type')
+  parser.add_option("-n", "--notice", action="store_const", dest="level", const=INFO, help='specify notice type')
+  parser.add_option("-s", "--script", action="store", dest="caller", default='wtflogger', help='specify caller name (defaults to wtflogger)')
+  parser.add_option("-t", "--test", action="store_true", dest="test", default=False, help='specify test mode')
+  parser.add_option("-w", "--warn", action="store_const", dest="level", const=WARNING, help='specify warn type')
+  parser.add_option("-v", "--verbose", action="store_const", dest="level", const=INFO, help='specify info type')
+  parser.add_option("-V", "--version", action="store_true", dest="version", default=False, help='show version and exit')
+
+  (opts, args) = parser.parse_args()
+
+  options = vars(opts)
+  if options['test']:
+    print (options)
+    print (args)
+
+  if options['version']:
+    print('%s Version: 1.0.0' % basenm)
+    exit(0)
+
+  nbrargs = len(args)
+  if nbrargs < 1:
+    raise ValueError("Pass exactly 1 arg ( " + usage + " )")
+
+  scribe = mwtfscribe.Scribe(options)
+  if nbrargs == 1:
+    scribe.unknown(args[0])
+  else:
+    scribe.unknown(args.pop(0), *args)
+
+if __name__ == "__main__":
+    main()

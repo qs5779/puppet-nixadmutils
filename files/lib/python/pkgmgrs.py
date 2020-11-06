@@ -3,6 +3,7 @@
 import os
 import distro
 import subprocess
+import mwtf
 
 class Error(Exception):
   """Base class for exceptions in this module."""
@@ -18,20 +19,7 @@ class UsageError(Error):
   def __init__(self, message):
       self.message = message
 
-class PackageHandler:
-  def __init__(self, opts={}):
-    self.options = {
-      'debug': 0,
-      'verbose': 0,
-      'test': False
-    }
-    self.options.update(opts)
-    if self.options['test']:
-      print('created instance of class %s' % self.__class__.__name__)
-
-  def requires_super_user(self):
-    if os.geteuid() != 0:
-      raise PermissionError('Specified action requires super user priviledges.')
+class PackageHandler(mwtf.Options):
 
   def validate_arg_count(self, action, args, expected, extra=False):
     nbr = len(args)
@@ -134,12 +122,12 @@ class PacmanHandler(PackageHandler):
   def find_action(self, args):
     switches = '-Ss'
     if self.options['refresh']:
-      self.requires_super_user
+      mwtf.requires_super_user
       switches += 'y'
     return self.execute(['pacman', switches, args[0]])
 
   def install_action(self, args):
-    self.requires_super_user
+    mwtf.requires_super_user
     switches = '-S'
     if self.options['refresh']:
       switches =+ 'y'
@@ -149,7 +137,7 @@ class PacmanHandler(PackageHandler):
     return self.execute(cmd)
 
   def uninstall_action(self, args):
-    self.requires_super_user
+    mwtf.requires_super_user
     cmd = ['pacmam', '-R']
     for i in args:
       cmd.append(i)
@@ -172,7 +160,7 @@ class AptHandler(PackageHandler):
 
   def find_action(self, args):
     if self.options['refresh']:
-      self.requires_super_user
+      mwtf.requires_super_user
       self.execute(['apt', 'update'])
     cmd = ['apt', 'search']
     if self.options['names-only'] != None:
@@ -181,7 +169,7 @@ class AptHandler(PackageHandler):
     return self.execute(cmd)
 
   def install_action(self, args):
-    self.requires_super_user
+    mwtf.requires_super_user
     if self.options['refresh']:
       self.execute(['apt', 'update'])
     cmd = ['apt', 'install']
@@ -190,7 +178,7 @@ class AptHandler(PackageHandler):
     return self.execute(cmd)
 
   def uninstall_action(self, args):
-    self.requires_super_user
+    mwtf.requires_super_user
     cmd = ['apt', 'remove']
     for i in args:
       cmd.append(i)
@@ -217,12 +205,12 @@ class YumHandler(PackageHandler):
   def find_action(self, args):
     cmd = [self.pkgcmd, 'search', args[0]]
     if self.options['refresh']:
-      self.requires_super_user
+      mwtf.requires_super_user
       cmd.insert(1, '--refresh')
     return self.execute(cmd)
 
   def install_action(self, args):
-    self.requires_super_user
+    mwtf.requires_super_user
     cmd = [self.pkgcmd, 'install']
     for i in args:
       cmd.append(i)
@@ -231,7 +219,7 @@ class YumHandler(PackageHandler):
     return self.execute(cmd)
 
   def uninstall_action(self, args):
-    self.requires_super_user
+    mwtf.requires_super_user
     cmd = [self.pkgcmd, 'remove']
     for i in args:
       cmd.append(i)

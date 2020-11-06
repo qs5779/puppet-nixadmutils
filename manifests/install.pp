@@ -54,7 +54,7 @@ class nixadmutils::install {
     require => File[$nixadmutils::nixadmutilsdir],
   }
 
-  $script_directories = ['bin', 'sbin', 'build']
+  $script_directories = ['bin', 'sbin', 'build', 'lib']
 
   $script_directories.each | String $dn | {
 
@@ -64,15 +64,10 @@ class nixadmutils::install {
       'sbin': {
         $group = $nixadmutils::wheelgroup
         $mode = '0754'
-
-        $pacwrap_links = ['findpkg', 'installpkg', 'pkglist', 'listpkgs', 'pkgfiles' ]
-
-        # now using pacwrap gem
-        $pacwrap_links.each |$lnk| {
-          file {"${target}/${lnk}":
-            ensure  => absent,
-          }
-        }
+      }
+      'lib': {
+        $group = 'root'
+        $mode = '0644'
       }
       default: {
         $group = 'root'
@@ -103,6 +98,7 @@ class nixadmutils::install {
 
   $links = {
     "${sbin}/lspuppet" => 'puppet-ls',
+    "${sbin}/pupenv" => 'pupcfg',
     "${nixadmutils::nixadmutilsdir}/build/bin/gitx" => 'gitnox',
   }
 

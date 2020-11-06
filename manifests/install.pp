@@ -20,7 +20,7 @@ class nixadmutils::install {
     ensure_packages($packages[$pvkey], { ensure => present })
   }
 
-  $pips = lookup('nixadmutils::required_packages', Array[String], first, [])
+  $pips = lookup('nixadmutils::required_packages', Hash[String,Array[String]], first, [])
 
   unless empty($pips) {
     # I had no luck with the on pip provider I tried 'yuav-pip'

@@ -25,7 +25,7 @@ class nixadmutils::install {
   unless empty($pips) {
     # I had no luck with the on pip provider I tried 'yuav-pip'
     # and no patience to fix it. So I am using an exec
-    $pip = $packages = lookup('nixadmutils::pip_command', String)
+    $pip = lookup('nixadmutils::pip_command', String, first, 'pip')
     $pips.each | String $pkg | {
       exec {"${pip} install ${pkg}":
         path    => ['/usr/local/bin', '/usr/bin', '/bin'],

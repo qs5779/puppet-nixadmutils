@@ -76,10 +76,48 @@ class PuppetConfig(PuppetFlags):
 
   def setting(self, key, section = 'agent'):
     if self.settings == None:
-      self.__load_config
+      self.__load_config()
     if section in self.settings:
       return self.settings[section][key]
     self.warn('Section not found: %s' % section)
+    self.errors += 1
+    return ''
+
+  def show_section(self, section = 'agent'):
+    if self.settings == None:
+      self.__load_config()
+    if section in self.settings:
+      print('[%s]' % section)
+      for key in self.settings[section]:
+        print('%s = %s' % (key, self.settings[section][key]))
+    else:
+      self.warn('Section not found: %s' % section)
+      self.errors += 1
+    return self.errors
+
+  def show_setting(self, key, section = 'agent'):
+    if self.settings == None:
+      self.__load_config()
+    if key == None:
+      self.show_section(section)
+    else:
+      value = self.setting(key, section)
+      print('[%s] %s = %s' % (section, key, value))
+    return self.errors
+
+  def show_config(self):
+    if self.settings == None:
+      self.__load_config()
+    label = None
+    for section in self.settings:
+      for key in self.settings[section]:
+        if section != label:
+          if not label == None:
+            print()
+          label = section
+          print('[%s]' % label)
+        print('%s = %s' % (key, self.settings[section][key]))
+    return self.errors
 
   def __init_pathnames(self):
     self.pathnames = {}
@@ -97,6 +135,7 @@ class PuppetConfig(PuppetFlags):
         continue
 
       good = 'good'
+      status = good
       if check == 'executable':
         if not os.access(pn, os.X_OK):
           status = "Unsupported attribute %s for: %s" % (check, pn)

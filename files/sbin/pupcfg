@@ -1,28 +1,32 @@
 #!/usr/bin/env python
 # -*- Mode: Python; tab-width: 2; indent-tabs-mode: nil -*-
 
+import mwtf
+import mwtfpuppet
 import sys
 import os.path
 from optparse import OptionParser
-import mwtfpuppet
 
 def main():
+  basenm = os.path.basename(sys.argv[0])
+  mwtf.requires_super_user('Script %s' % basenm)
+
   usage = """usage: %prog [options]
 
   when no options are specified current flag status is shown
 
   """
   parser = OptionParser(usage)
-  parser.add_option("-c", "--clear", action="append", dest="clear", help='specify flag to clear)')
+  parser.add_option("-a", "--all", action="store_true", dest="all", help='show all')
   parser.add_option("-d", "--debug", action="count", dest="debug", default=0, help='increment debug level')
-  parser.add_option("-s", "--set", action="append", dest="set", help='specify flag to set)')
+  parser.add_option("-k", "--key", action="store", dest="key", help='specifies config key')
+  parser.add_option("-s", "--section", action="store", dest="section", default='agent', help='specifies config section (default agent)')
   parser.add_option("-t", "--test", action="store_true", dest="test", default=False, help='specify test mode')
   parser.add_option("-v", "--verbose", action="count", dest="verbose", default=0, help='increment verbosity level')
   parser.add_option("-V", "--version", action="store_true", dest="version", default=False, help='show version and exit')
 
   (opts, args) = parser.parse_args()
 
-  basenm = os.path.basename(sys.argv[0])
   options = vars(opts)
   if options['debug']>1:
     print (options)
@@ -33,8 +37,16 @@ def main():
     exit(0)
 
   options['caller'] = basenm
-  flagger = mwtfpuppet.PuppetFlags(options)
-  exit(flagger.cli_run())
+  config = mwtfpuppet.PuppetConfig(options)
+
+  if basenm == 'pupenv':
+    exit_code = config.show_setting('environment', 'agent')
+  elif options['all']:
+    exit_code = config.show_config()
+  else:
+    exit_code = config.show_setting(options['key'], options['section'])
+
+  exit(exit_code)
 
 if __name__ == "__main__":
     main()

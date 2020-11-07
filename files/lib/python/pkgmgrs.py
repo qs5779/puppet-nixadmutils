@@ -131,14 +131,14 @@ class PacmanHandler(PackageHandler):
     switches = '-S'
     if self.options['refresh']:
       switches =+ 'y'
-    cmd = ['pacmam', switches]
+    cmd = ['pacman', switches]
     for i in args:
       cmd.append(i)
     return self.execute(cmd)
 
   def uninstall_action(self, args):
     mwtf.requires_super_user
-    cmd = ['pacmam', '-R']
+    cmd = ['pacman', '-R']
     for i in args:
       cmd.append(i)
     return self.execute(cmd)

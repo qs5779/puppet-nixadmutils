@@ -1,4 +1,63 @@
 #!/bin/sh
 
-echo $PATH | tr ':' "\n"
+# -*- Mode: Bash; tab-width: 2; indent-tabs-mode: nil -*-
+# Revision History:
+# YYYYmmdd - whoami - initial version
+#
+
+SCRIPT=$(basename "$0")
+PATHVAR=PATH
+
+function usage {
+  cat << EOM
+usage: $SCRIPT [-h] [-l] [-p] [-P]
+  where:
+    -h show this message and exit
+    -l specify LOAD_LIBRARY_PATH
+    -p specify PYTHONPATH
+    -P specify PERL5LIB
+
+    default shows PATH variable
+EOM
+  exit 1
+}
+
+while getopts ":hlpP" opt
+do
+  case "$opt" in
+    h )
+      usage
+    ;;
+    l )
+      PATHVAR=LOAD_LIBRARY_PATH
+    ;;
+    p )
+      PATHVAR=PYTHONPATH
+    ;;
+    P )
+      PATHVAR=PERL5LIB
+    ;;
+    * )
+      echo "Unexpected option \"$opt\""
+      usage
+    ;;
+  esac
+done
+shift $((OPTIND - 1))
+
+case "$PATHVAR" in
+  LOAD_LIBRARY_PATH )
+    echo $LOAD_LIBRARY_PATH | tr ':' "\n"
+  ;;
+  PYTHONPATH )
+    echo $PYTHONPATH | tr ':' "\n"
+  ;;
+  PERL5LIB )
+    echo $PERL5LIB | tr ':' "\n"
+  ;;
+  * )
+    echo $PATH | tr ':' "\n"
+  ;;
+esac
+
 exit $?

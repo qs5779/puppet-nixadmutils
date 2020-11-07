@@ -13,15 +13,18 @@ The README template below provides a starting point with details about what info
 
 #### Table of Contents
 
-1. [Description](#description)
-2. [Setup - The basics of getting started with nixadmutils](#setup)
-    * [What nixadmutils affects](#what-nixadmutils-affects)
-    * [Setup requirements](#setup-requirements)
-    * [Beginning with nixadmutils](#beginning-with-nixadmutils)
-3. [Usage - Configuration options and additional functionality](#usage)
-4. [Reference - An under-the-hood peek at what the module is doing and how](#reference)
-5. [Limitations - OS compatibility, etc.](#limitations)
-6. [Development - Guide for contributing to the module](#development)
+- [nixadmutils](#nixadmutils)
+      - [Table of Contents](#table-of-contents)
+  - [Description](#description)
+  - [Setup](#setup)
+    - [What nixadmutils affects **OPTIONAL**](#what-nixadmutils-affects-optional)
+    - [Setup Requirements **OPTIONAL**](#setup-requirements-optional)
+    - [Beginning with nixadmutils](#beginning-with-nixadmutils)
+  - [Usage](#usage)
+  - [Reference](#reference)
+  - [Limitations](#limitations)
+  - [Development](#development)
+  - [Release Notes/Contributors/Etc. **Optional**](#release-notescontributorsetc-optional)
 
 ## Description
 
@@ -30,6 +33,18 @@ Start with a one- or two-sentence summary of what the module does and/or what pr
 You can give more descriptive information in a second paragraph. This paragraph should answer the questions: "What does this module *do*?" and "Why would I use it?" If your module has a range of functionality (installation, configuration, management, etc.), this is the time to mention it.
 
 ## Setup
+
+Whether managing these scrits using puppet or another means. Any perl or python libraries locations will need to be
+identified in the PERL5LIB and PYTHONPATH variables. This module will manage those for you via the profile.d files
+it installs. For the python or perl scripts you need to run via sudo, you must ensure that those variable are
+available to your sudoers. I manage them with the sudoer puppet module adding a config using:
+
+``` puppet
+  sudo::conf { 'perl-python-paths':
+    priority => 66,
+    content  => 'Defaults env_keep += "PYTHONPATH PERL5LIB"',
+  }
+```
 
 ### What nixadmutils affects **OPTIONAL**
 

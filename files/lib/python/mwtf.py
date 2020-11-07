@@ -9,9 +9,9 @@ def ensure_directory(dir, perm=0o755):
     raise NotADirectoryError('Pathname "%s" is not a directory.' % dir)
   os.makedirs(dir,mode=perm)
 
-def requires_super_user():
+def requires_super_user(prefix='Specified action'):
   if os.geteuid() != 0:
-    raise PermissionError('Specified action requires super user priviledges.')
+    raise PermissionError('%s requires super user priviledges.' % prefix)
 
 class Options:
   def __init__(self, opts={}):

@@ -6,10 +6,10 @@ import os.path
 from optparse import OptionParser
 
 def main():
-  usage = "usage: %prog [options] message"
+  usage = "usage: %prog [options]"
   parser = OptionParser(usage)
   parser.add_option("-d", "--debug", action="count", dest="debug", default=0, help='increment debug level')
-  parser.add_option("-s", "--script", action="store", dest="caller", default='wtflogger', help='specify caller name (defaults to wtfalert)')
+  parser.add_option("-s", "--script", action="store", dest="caller", default='wtfalert', help='specify caller name (defaults to wtfalert)')
   parser.add_option("-S", "--show", action="store_true", dest="show", default=False, help='show contents of the alerts storage')
   parser.add_option("-v", "--verbose", action="count", dest="verbose", default=0, help='increment verbosity level')
   parser.add_option("-V", "--version", action="store_true", dest="version", default=False, help='show version and exit')
@@ -25,6 +25,7 @@ def main():
     basenm = os.path.basename(sys.argv[0])
     print('%s Version: 1.0.0' % basenm)
     exit(0)
+
 
 if __name__ == "__main__":
     main()

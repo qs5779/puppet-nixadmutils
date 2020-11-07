@@ -8,3 +8,4 @@ nixadmutils::required_packages:
   python3:
     - python3-distro
     - python3-packaging
+    - python3-systemd

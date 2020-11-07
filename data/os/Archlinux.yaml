@@ -5,6 +5,8 @@ nixadmutils::required_packages:
     - python2-distro
     - python2-packaging
     - python2-configparser
+    - python2-systemd
   python3:
     - python-distro
     - python-packaging
+    - python-systemd

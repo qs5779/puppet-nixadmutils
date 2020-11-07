@@ -119,9 +119,33 @@ class PuppetConfig(PuppetFlags):
         print('%s = %s' % (key, self.settings[section][key]))
     return self.errors
 
+  def pathname(self, pathkey):
+    try:
+      _ignore = self.__pathkeys().index(pathkey)
+      alertkey = 'puppet.%s.file.status' % pathkey
+      if self.pathnames[pathkey]['pn'] == None:
+        args = {
+          :key => key,
+          :subject => @pathnames[label][:status],
+          :message => "#{key}. Please investigate."
+        }
+        self.send_alert args
+      else
+        args = { :key => key }
+        clear_alert args
+      end
+      @pathnames[label][:fn]
+    except ValueError:
+      self.warn('Invalid pathkey: ' + pathkey)
+      self.errors += 1
+      raise
+
+  def __pathkeys(self):
+    return ['config', 'state', 'lastrun', 'bin']
+
   def __init_pathnames(self):
     self.pathnames = {}
-    for path in ['config', 'state', 'lastrun', 'bin']:
+    for path in self.__keys():
       self.pathnames[path] = {}
       self.pathnames[path]['pn'] = None
       self.pathnames[path]['status'] = 'File not found.'
@@ -188,3 +212,71 @@ class PuppetConfig(PuppetFlags):
         raise FileNotFoundError(errno.ENOENT, "Puppet config file %s!!!" % self.pathnames['config']['status'])
       self.settings = configparser.ConfigParser()
       self.settings.read(self.pathnames['config']['pn'])
+
+
+class PuppetCommon(PuppetConfig):
+  def __init__(self, opts={}):
+    super().__init__(opts)
+    self.exit_code = 0
+
+  def _is_run_okay(self, action):
+    return 12
+
+class PuppetStatus(PuppetCommon):
+
+  def check(self):
+    self.check_catalog_run_lock()
+    self.check_last_run_yaml()
+
+    if self.istest():
+      print('Checked!')
+    return self.exit_code
+
+  def check_catalog_run_lock(self)
+    catlock_fn = File.join(pathname(state), 'agent_catalog_run.lock')
+
+    age = Wtf.file_age catlock_fn
+    maxruntime = @rc.key?('maxpupppetrunage') ? @rc['maxpupppetrunage'] : 600 # 10 minutes
+
+    if age > maxruntime
+      pid = lock_pid(catlock_fn)
+
+      if pid
+        msg = "#{catlock_fn}\nage: #{age}, pid: #{pid}"
+        _stdout_str, _error_str, status = Open3.capture3('kill', '-s 0', pid.to_s)
+        if status.success?
+          send_alert(:key => 'puppet.hung.catalog.lock', :message => msg)
+        else
+          send_alert(:key => 'puppet.stale.catalog.lock', :message => msg)
+        end
+      else
+        log_warn "Failed to extract pid from: #{catlock_fn}"
+      end
+    else
+      clear_alert :key => 'puppet.hung.catalog.lock'
+      clear_alert :key => 'puppet.stale.catalog.lock'
+    end
+
+class PuppetTrigger(PuppetCommon):
+
+  def trigger(self):
+    return 1
+
+  def __run_agent(self):
+    return 1
+
+  def __run(self):
+    result = self.__run_agent()
+    if result == 0:
+      self.log_info('Puppet run succeeded with no changes or failures.')
+    elif result == 1:
+      self.log_error("Puppet run failed, or wasn't attempted due to another run already in progress.")
+    elif result == 2:
+      self.log_info('Puppet run succeeded, and some resources were changed.')
+    elif result == 4:
+      self.log_warn('Puppet run succeeded, and some resources failed.')
+    elif result == 6:
+      self.log_warn('Puppet run succeeded, and included both changes and failures.')
+    else:
+      self.log_error('Puppet run exited with %d' % result)
+    return result

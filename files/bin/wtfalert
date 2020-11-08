@@ -3,6 +3,7 @@
 
 import sys
 import os.path
+import mwtfalertable
 from optparse import OptionParser
 
 def main():
@@ -26,6 +27,8 @@ def main():
     print('%s Version: 1.0.0' % basenm)
     exit(0)
 
+  alerter = mwtfalertable.Alerter(options)
+  exit(alerter.dump())
 
 if __name__ == "__main__":
     main()

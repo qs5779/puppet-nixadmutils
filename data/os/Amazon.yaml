@@ -1,13 +1,15 @@
 ---
 
-nixadmutils::pip_command: pip3
+nixadmutils::pip_command: pip
 
 nixadmutils::required_pips:
   - packaging
+  - distro
 
 nixadmutils::required_packages:
   python2:
     - python2-pip
+    - python-filelock
   python3:
     - python3-pip
-    - python3-distro
+    - python-filelock

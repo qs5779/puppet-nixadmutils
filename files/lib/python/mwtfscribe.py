@@ -31,9 +31,11 @@ class Scribe(mwtf.Options):
 
   def error(self, message, *args, **kwargs):
     self.log.error(message, *args, **kwargs)
+    self.errors += 1
 
   def fatal(self, message, *args, **kwargs):
     self.log.critical(message, *args, **kwargs)
+    self.errors += 1
 
   def unknown(self, message, *args, **kwargs):
     self.log.log(self.options['level'], message, *args, **kwargs)

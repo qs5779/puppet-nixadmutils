@@ -7,8 +7,21 @@ import mwtfmailer
 from logging import (CRITICAL, ERROR, WARNING, INFO, DEBUG, NOTSET)
 from filelock import Timeout, FileLock
 
+class Store(mwtf.Options):
+  def __check_store(self, parent, fpn):
+    if not os.path.isdir(parent):
+      raise NotADirectoryError('Pathname "%s" is not a directory.' % dir)
+    if os.path.exists(fpn):
+      if not os.access(fpn, os.R_OK):
+        raise PermissionError('File "%s" is not readable.' % fpn)
+      if not os.access(fpn, os.W_OK):
+        raise PermissionError('File "%s" is not writable.' % fpn)
+    elif not os.access(parent, os.W_OK):
+        raise PermissionError('Directory "%s" is not writable.' % parent)
 
-class Alerts(mwtf.Options):
+
+
+class Alerts(Store):
     def clear(self, args):
       return 0
 

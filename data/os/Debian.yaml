@@ -6,8 +6,10 @@ nixadmutils::required_packages:
     - python-packaging
     - python-configparser
     - python-filelock
+    - python-yaml
   python3:
     - python3-distro
     - python3-packaging
     - python3-systemd
     - python3-filelock
+    - python3-yaml

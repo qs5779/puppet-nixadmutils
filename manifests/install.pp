@@ -51,7 +51,24 @@ class nixadmutils::install {
   file { "${nixadmutils::nixadmutilsdir}/etc":
     ensure  => 'directory',
     mode    => '0755',
+    owner   => 'root',
+    group   => $facts['wtfo_wheel'],
     require => File[$nixadmutils::nixadmutilsdir],
+  }
+
+  $var_dir = "${nixadmutils::nixadmutilsdir}/etc"
+  file { "${nixadmutils::nixadmutilsdir}/etc":
+    ensure  => 'directory',
+    mode    => '0775',
+    owner   => $facts['wtfo_butler'],
+    group   => $facts['wtfo_wheel'],
+    require => File[$nixadmutils::nixadmutilsdir],
+  }
+
+  $alerts = "${var_dir}/alerts.yaml"
+  exec {"chmod 664 ${alerts}":
+    path   => ['/usr/bin', '/bin'],
+    onlyif => "[ -f ${alerts} ] && [ \"$(stat -c %a ${alerts})\" != '664' ]",
   }
 
   $script_directories = ['bin', 'sbin', 'build', 'lib']

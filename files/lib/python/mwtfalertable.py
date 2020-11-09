@@ -1,6 +1,7 @@
 # -*- Mode: Python; tab-width: 2; indent-tabs-mode: nil -*-
 import os
 import re
+import yaml
 import mwtf
 import mwtfscribe
 import mwtfmailer
@@ -8,6 +9,50 @@ from logging import (CRITICAL, ERROR, WARNING, INFO, DEBUG, NOTSET)
 from filelock import Timeout, FileLock
 
 class Store(mwtf.Options):
+  def __init__(self, opts={}):
+    super().__init__(aopts)
+    self.data_pathname = None
+    self.dirty = False
+
+  def save(self, data):
+    if self.data_pathname
+      raise ValueError('Failed to find a valid data pathname!!!')
+    saved_mask = os.umask(2)
+    with open(self.data_pathname, 'w') as outfile:
+        yaml.dump(data, outfile, default_flow_style=False)
+  # rescue StandardError => _e
+  #   File.umask(saved_mask)
+  #   raise
+  # end
+
+  def load(self):
+    if self.data_pathname
+      raise ValueError('Failed to find a valid data pathname!!!')
+    self.dirty = false
+    if os.path.exists(self.data_pathname)
+      data, dirty = load_data(self.data_pathname)
+    else
+      data = {}
+      data[:created] = Time.now.to_s
+      self.dirty = true
+    end
+    if self.dirty:
+      self.save(data)
+
+  def __load_data(fpn)
+    sedirty = false
+    data = YAML.safe_load(File.read(fpn), [Symbol])
+    if data.nil?
+      data = {}
+      data[:rescued] = Time.now.to_s
+      dirty = true
+    elsif data.key?('isondisk')
+      data = convert(data)
+      dirty = true
+    end
+    [data, dirty]
+  end
+
   def __check_store(self, parent, fpn):
     if not os.path.isdir(parent):
       raise NotADirectoryError('Pathname "%s" is not a directory.' % dir)
@@ -18,8 +63,6 @@ class Store(mwtf.Options):
         raise PermissionError('File "%s" is not writable.' % fpn)
     elif not os.access(parent, os.W_OK):
         raise PermissionError('Directory "%s" is not writable.' % parent)
-
-
 
 class Alerts(Store):
     def clear(self, args):

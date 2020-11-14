@@ -10,8 +10,10 @@ def main():
   usage = "usage: %prog [options]"
   parser = OptionParser(usage)
   parser.add_option("-d", "--debug", action="count", dest="debug", default=0, help='increment debug level')
+  parser.add_option("-D", "--store", action="store", dest="store", help='specify writable directory where to store data')
   parser.add_option("-s", "--script", action="store", dest="caller", default='wtfalert', help='specify caller name (defaults to wtfalert)')
   parser.add_option("-S", "--show", action="store_true", dest="show", default=False, help='show contents of the alerts storage')
+  parser.add_option("-t", "--test", action="store_true", dest="test", default=False, help='sets test flag')
   parser.add_option("-v", "--verbose", action="count", dest="verbose", default=0, help='increment verbosity level')
   parser.add_option("-V", "--version", action="store_true", dest="version", default=False, help='show version and exit')
 
@@ -27,8 +29,23 @@ def main():
     print('%s Version: 1.0.0' % basenm)
     exit(0)
 
+  exit_code = 0
   alerter = mwtfalertable.Alerter(options)
-  exit(alerter.dump())
+  if options['show']:
+    alerter.dump()
+  # elif options['test']:
+    # Raises an alerter where:
+    #  args {
+    #     key      => 'unique alert key', # required
+    #     subject  => 'subject',          # optional
+    #     message  => 'message',          # optional
+    #     filename => 'pathname',         # optional read file into message
+    #  }
+  else:
+    alrt = { 'key': 'wtf.test.alert'  }
+    alerter.raise_alert(alrt)
+
+  exit(exit_code)
 
 if __name__ == "__main__":
     main()

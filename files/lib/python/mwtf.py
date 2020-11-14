@@ -2,6 +2,9 @@
 
 import os
 
+def secsepochsince():
+  return int(os.popen("date '+%s'").read().rstrip())
+
 def ensure_directory(dir, perm=0o755):
   if os.path.isdir(dir):
     return True
@@ -33,3 +36,7 @@ class Options:
 
   def istest(self):
     return self.options['test']
+
+  def trace(self, message, level = 1):
+    if self.options['debug'] >= level:
+      print(message)

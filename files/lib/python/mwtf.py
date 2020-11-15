@@ -2,8 +2,25 @@
 
 import os
 
+def uptime(elevate = True):
+  try:
+    with open('/proc/uptime', 'r') as f:
+      uptime_seconds = float(f.readline().split()[0])
+      return int(uptime_seconds)
+  except:
+    if elevate:
+      raise
+  return 0
+
 def secsepochsince():
   return int(os.popen("date '+%s'").read().rstrip())
+
+def file_age(pathname):
+  if os.path.exists(pathname):
+    result = secsepochsince() - int(os.path.getmtime(pathname))
+  else:
+    result = 0
+  return result
 
 def ensure_directory(dir, perm=0o755):
   if os.path.isdir(dir):
@@ -38,5 +55,12 @@ class Options:
     return self.options['test']
 
   def trace(self, message, level = 1):
-    if self.options['debug'] >= level:
+    if self.options['test'] or self.options['debug'] >= level:
+      print(message)
+
+  def _debug(self, message):
+    self.trace(message)
+
+  def _verbose(self, message, level = 1):
+    if self.options['test'] or self.options['verbose'] >= level:
       print(message)

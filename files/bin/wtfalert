@@ -29,21 +29,25 @@ def main():
     print('%s Version: 1.0.0' % basenm)
     exit(0)
 
+  gettrace = getattr(sys, 'gettrace', None)
+
+  if gettrace is not None and gettrace():
+      print('Hmm, Big Debugger is watching me')
+      options['test'] = True
+
   exit_code = 0
   alerter = mwtfalertable.Alerter(options)
-  if options['show']:
-    alerter.dump()
-  # elif options['test']:
-    # Raises an alerter where:
+  if options['test']:
     #  args {
     #     key      => 'unique alert key', # required
     #     subject  => 'subject',          # optional
     #     message  => 'message',          # optional
     #     filename => 'pathname',         # optional read file into message
     #  }
-  else:
     alrt = { 'key': 'wtf.test.alert'  }
     alerter.raise_alert(alrt)
+  else:
+    alerter.dump()
 
   exit(exit_code)
 

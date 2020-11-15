@@ -1,13 +1,16 @@
 # frozen_string_literal: true
 
 import os
+import re
+import sys
 import errno
 import configparser
+import yaml
+from datetime import datetime
 import mwtf
 import mwtfalertable
 
-
-class PuppetFlags(mwtfalertable.Alertable):
+class PuppetFlags(mwtfalertable.Alerter):
   def __init__(self, opts={}):
     super().__init__(opts)
     if self.istest():
@@ -71,6 +74,7 @@ class PuppetFlags(mwtfalertable.Alertable):
 class PuppetConfig(PuppetFlags):
   def __init__(self, opts={}):
     super().__init__(opts)
+    self.interval = None
     self.settings = None
     self.__init_pathnames()
 
@@ -122,30 +126,40 @@ class PuppetConfig(PuppetFlags):
   def pathname(self, pathkey):
     try:
       _ignore = self.__pathkeys().index(pathkey)
-      alertkey = 'puppet.%s.file.status' % pathkey
+      key = 'puppet.%s.file.status' % pathkey
       if self.pathnames[pathkey]['pn'] == None:
         args = {
-          :key => key,
-          :subject => @pathnames[label][:status],
-          :message => "#{key}. Please investigate."
+          'key': key,
+          'subject': self.pathnames[pathkey]['status'],
+          'message': '%s. Please investigate.' % key
         }
-        self.send_alert args
-      else
-        args = { :key => key }
-        clear_alert args
-      end
-      @pathnames[label][:fn]
+        self.raise_alert(args)
+      else:
+        args = { 'key': key }
+        self.clear(args)
+      return self.pathnames[pathkey]['pn']
     except ValueError:
       self.warn('Invalid pathkey: ' + pathkey)
       self.errors += 1
       raise
+
+  # protected
+
+  def _run_interval(self):
+    if self.interval is None:
+      ri = int(self.setting('runinterval'))
+      if ri:
+        self.interval = int(ri)
+      else:
+        self.interval = 7200
+    return self.interval
 
   def __pathkeys(self):
     return ['config', 'state', 'lastrun', 'bin']
 
   def __init_pathnames(self):
     self.pathnames = {}
-    for path in self.__keys():
+    for path in self.__pathkeys():
       self.pathnames[path] = {}
       self.pathnames[path]['pn'] = None
       self.pathnames[path]['status'] = 'File not found.'
@@ -220,9 +234,33 @@ class PuppetCommon(PuppetConfig):
     self.exit_code = 0
 
   def _is_run_okay(self, action):
-    return 12
+    result = True
+    if not self.options.get('force', False):
+      if mwtf.uptime() < 300:
+        self.exit_code = 11
+        self.warn('%s action skipped due to insufficient uptime.' % action)
+        result = False
+      elif self.flag_exists('stopped'):
+        self.exit_code = 13
+        self.warn('%s action skipped due to stopped puppet flag.' % action)
+        result = False
+    return result
 
 class PuppetStatus(PuppetCommon):
+  def __init__(self, opts={}):
+    super().__init__(opts)
+    self.rc = {} # TODO: read config file
+
+  def lock_pid(self, fpn):
+    pid = False
+    f = open(fpn, 'r')
+    for line in f:
+      try:
+        pid = int(line.strip())
+      except ValueError:
+        pid = False
+      break
+    return pid
 
   def check(self):
     self.check_catalog_run_lock()
@@ -232,51 +270,88 @@ class PuppetStatus(PuppetCommon):
       print('Checked!')
     return self.exit_code
 
-  def check_catalog_run_lock(self)
-    catlock_fn = File.join(pathname(state), 'agent_catalog_run.lock')
+  def secs_since_last_run(self, summary, interval):
+    if 'time' in summary and 'last_run' in summary['time']:
+      lastrunsecs = summary['time']['last_run']
+    else:
+      lastrunsecs = mwtf.file_age(self.pathname('lastrun'))
+    now = mwtf.secsepochsince()
+    elapsed = now - lastrunsecs
+    if self.options.get('screen', sys.stdout.isatty()):
+      lastrun = datetime.fromtimestamp(lastrunsecs)
+      nextrun = datetime.fromtimestamp(now + (interval - elapsed))
+      print('Puppet last run: %s ' % lastrun)
+      print('Puppet next run: %s (estimated)' % nextrun)
+    return elapsed
 
-    age = Wtf.file_age catlock_fn
-    maxruntime = @rc.key?('maxpupppetrunage') ? @rc['maxpupppetrunage'] : 600 # 10 minutes
+  def check_last_run_yaml(self):
+    lastrunyaml = self.pathname('lastrun')
+    self.trace('lastrunyaml: %s' % lastrunyaml)
+    with open(lastrunyaml) as file:
+      summary = yaml.full_load(file)
+    ri = self._run_interval()
+    result = self.secs_since_last_run(summary, ri) > ri
+    self.debug('check_last_run_yaml returning %s' % result)
+    return result
 
-    if age > maxruntime
-      pid = lock_pid(catlock_fn)
+  def check_catalog_run_lock(self):
+    catlock_fn = os.path.join(self.pathname('state'), 'agent_catalog_run.lock')
+    age = mwtf.file_age(catlock_fn)
+    maxruntime = self.rc.get('maxpupppetrunage', 600) # defalt 10 minutes
+    if age > maxruntime:
+      pid = self.lock_pid(catlock_fn)
+      if pid:
+        msg = "%s\nage: %d, pid: %d" % (catlock_fn, age, pid)
+        ec = os.system('kill -s 0 %d' % pid)
+        if ec == 0:
+          self.raise_alert({'key': 'puppet.hung.catalog.lock', 'message': msg})
+        else:
+          self.raise_alert({'key': 'puppet.stale.catalog.lock', 'message': msg})
+      else:
+        self.warn('Failed to extract pid from: %s' % catlock_fn)
+    else:
+      self.clear({'key': 'puppet.hung.catalog.lock'})
+      self.clear({'key': 'puppet.stale.catalog.lock'})
 
-      if pid
-        msg = "#{catlock_fn}\nage: #{age}, pid: #{pid}"
-        _stdout_str, _error_str, status = Open3.capture3('kill', '-s 0', pid.to_s)
-        if status.success?
-          send_alert(:key => 'puppet.hung.catalog.lock', :message => msg)
-        else
-          send_alert(:key => 'puppet.stale.catalog.lock', :message => msg)
-        end
-      else
-        log_warn "Failed to extract pid from: #{catlock_fn}"
-      end
-    else
-      clear_alert :key => 'puppet.hung.catalog.lock'
-      clear_alert :key => 'puppet.stale.catalog.lock'
-    end
-
-class PuppetTrigger(PuppetCommon):
+class PuppetTrigger(PuppetStatus):
 
   def trigger(self):
-    return 1
+    if self._is_run_okay('trigger'):
+      if self.check_last_run_yaml():
+        self.__run()
+      # print(self.check_last_run_yaml())
+      # print('exit_code: %d' % self.exit_code)
+    return self.exit_code
 
   def __run_agent(self):
-    return 1
+    if self.options['test']:
+      self._debug('puppet run triggered, but skipped due to test flag')
+      result = 0
+    else:
+      runner = '/opt/nixadmutils/sbin/runpup'
+      if self.pathnames['bin']['status'] != 'good':
+        raise self.pathnames['bin']['status']
+      if not os.path.exists(runner):
+        raise FileNotFoundError('File not found: %s' % runner)
+      if not os.path.exists(runner):
+        raise FileNotFoundError('File not found: %s' % runner)
+      if not os.access(runner, os.X_OK):
+        raise PermissionError('File not executable: %s' % runner)
+      result = os.system(runner)
+    return result
 
   def __run(self):
     result = self.__run_agent()
     if result == 0:
-      self.log_info('Puppet run succeeded with no changes or failures.')
+      self.info('Puppet run succeeded with no changes or failures.')
     elif result == 1:
-      self.log_error("Puppet run failed, or wasn't attempted due to another run already in progress.")
+      self.error("Puppet run failed, or wasn't attempted due to another run already in progress.")
     elif result == 2:
-      self.log_info('Puppet run succeeded, and some resources were changed.')
+      self.info('Puppet run succeeded, and some resources were changed.')
     elif result == 4:
-      self.log_warn('Puppet run succeeded, and some resources failed.')
+      self.warn('Puppet run succeeded, and some resources failed.')
     elif result == 6:
-      self.log_warn('Puppet run succeeded, and included both changes and failures.')
+      self.warn('Puppet run succeeded, and included both changes and failures.')
     else:
-      self.log_error('Puppet run exited with %d' % result)
+      self.error('Puppet run exited with %d' % result)
     return result

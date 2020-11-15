@@ -65,9 +65,21 @@ class Alerts(mwtf.Options):
       self.save()
 
   def clear(self, args):
-    message = 'clear Not implemented'
-    print(message)
-    return message
+    self.trace('Alerts::clear called')
+    key = args['key']
+    last, _throttled = self.__clear_key(key)
+    result = 0
+    if last < 0:
+      self._debug('key not found: %s ' % key)
+    elif last > 0:
+      body = "Alert cleared (throttled #{throttled} times) for key: #{key}"
+      args['subject'] = '%s alert cleared' % key
+      self.__compose(args, body)
+      self._verbose('Alert cleared for key: %s' % key)
+      result = 1
+    else:
+      self._debug('nothing to clear for key: %s' % key)
+    return result
 
   def show(self):
     if self.isdebug():
@@ -76,7 +88,7 @@ class Alerts(mwtf.Options):
 
   def hostname(self):
     if self.myhost is None:
-      self.myhost = os.popen('hostname -d').read().rstrip()
+      self.myhost = os.popen('hostname').read().rstrip()
     return self.myhost
 
   def send(self, args, body):
@@ -117,6 +129,7 @@ class Alerts(mwtf.Options):
     self.__compose_message(opts, body)
 
   def __compose_message(self, args, default=None):
+    args['subject'] = self.__compose_subject(args)
     msg = args.get('message', '')
     if 'filename' in args:
       f = open(args['filename'],'r')
@@ -139,6 +152,21 @@ class Alerts(mwtf.Options):
       result = True
     self.dirty = True
     return result
+
+  def __clear_key(self, key):
+    last = -1
+    throttled = -1
+    if key in self.data:
+      throttled = 0
+      last = 0
+      if LAST in self.data[key]:
+        last = self.data[key][LAST]
+        if last != 0:
+          throttled = self.data[key][THROTTLED]
+          self.data[key][LAST] = 0
+          self.data[key][THROTTLED] = 0
+          self.dirty = True
+    return [last, throttled]
 
   def __verify_key(self, key):
     if key in self.data:
@@ -191,14 +219,12 @@ class Alerter(mwtfscribe.Scribe):
       'level': WARNING,
       'to': maddr,
       'from': maddr,
-      'smtphost': 'localhost',
-      'screen': False,
     }
     aopts.update(opts)
     sopts = {
       'caller': 'wtfalert',
       'level': WARNING,
-      'screen': False,
+      'screen': sys.stdout.isatty(),
     }
     sopts.update(opts)
     super().__init__(sopts)
@@ -258,7 +284,7 @@ class Alerter(mwtfscribe.Scribe):
     if 'key' not in args:
       raise ValueError('Failed to clear alert. Missing key argument.')
     message = self.alerts.lift(args)
-    self.warn( message)
+    self.warn(message)
     if re.match('^Alert throttled:', message) is None:
       self.sent += 1
     else:

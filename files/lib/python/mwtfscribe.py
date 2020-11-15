@@ -8,7 +8,7 @@ class Scribe(mwtf.Options):
   def __init__(self, opts={}):
     super().__init__(opts)
 
-    self.log = logging.getLogger('demo')
+    self.log = logging.getLogger('wtfo')
 
     if ('level' not in self.options) or (self.options['level'] == None):
       self.options['level'] = logging.INFO
@@ -19,6 +19,15 @@ class Scribe(mwtf.Options):
       self.log.addHandler(JournalHandler(SYSLOG_IDENTIFIER=self.options['caller']))
 
     self.log.setLevel(self.options['level'])
+
+    if self.options['screen']:
+      console = logging.StreamHandler()
+      console.setLevel(self.options['level'])
+      # set a format which is simpler for console use
+      formatter = logging.Formatter('%(levelname)8s: %(message)s')
+      # tell the handler to use this format
+      console.setFormatter(formatter)
+      self.log.addHandler(console)
 
   def debug(self, message, *args, **kwargs):
     self.log.debug(message, *args, **kwargs)

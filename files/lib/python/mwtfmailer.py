@@ -22,13 +22,10 @@ class Mailer(mwtf.Options):
     print(args, body)
 
   def __send_sendmail(self, args, body):
-    print("NOTICE: mailer __send_sendmail not implemented yet!")
-    print(args, body)
-    # msg = MIMEText(body)
-    # msg["From"] = "me@example.com"
-    # msg["To"] = "you@example.com"
-    # msg["Subject"] = "This is the subject."
-    # p = Popen(["/usr/sbin/sendmail", "-t", "-oi"], stdin=PIPE)
-
+    msg = MIMEText(body)
+    msg["From"] = args.get('from', 'root')
+    msg["To"] = args.get('to', 'root')
+    msg["Subject"] = args.get('subject', 'No subject provided')
+    p = Popen(["/usr/sbin/sendmail", "-t", "-oi"], stdin=PIPE)
     # Both Python 2.X and 3.X
-    # p.communicate(msg.as_bytes() if sys.version_info >= (3,0) else msg.as_string())
+    p.communicate(msg.as_bytes() if sys.version_info >= (3,0) else msg.as_string())

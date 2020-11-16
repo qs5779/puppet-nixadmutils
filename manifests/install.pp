@@ -56,8 +56,8 @@ class nixadmutils::install {
     require => File[$nixadmutils::nixadmutilsdir],
   }
 
-  $var_dir = "${nixadmutils::nixadmutilsdir}/etc"
-  file { "${nixadmutils::nixadmutilsdir}/etc":
+  $var_dir = "${nixadmutils::nixadmutilsdir}/var"
+  file { $var_dir:
     ensure  => 'directory',
     mode    => '0775',
     owner   => $facts['wtfo_butler'],

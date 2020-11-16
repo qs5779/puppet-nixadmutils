@@ -8,11 +8,11 @@ nixadmutils::required_packages:
     - python2-configparser
     - python2-systemd
     - python2-filelock
-    - PyYAML
+    - python-yaml
   python3:
     - python-pytz
     - python-distro
     - python-packaging
     - python-systemd
     - python-filelock
-    - PyYAML
+    - python-yaml

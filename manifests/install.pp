@@ -43,26 +43,27 @@ class nixadmutils::install {
     }
   }
 
-  file { $nixadmutils::nixadmutilsdir:
+  $naudir = $nixadmutils::nixadmutilsdir
+  file { $naudir:
     ensure => 'directory',
     mode   => '0755',
   }
 
-  file { "${nixadmutils::nixadmutilsdir}/etc":
+  file { "${naudir}/etc":
     ensure  => 'directory',
     mode    => '0755',
     owner   => 'root',
     group   => $facts['wtfo_wheel'],
-    require => File[$nixadmutils::nixadmutilsdir],
+    require => File[$naudir],
   }
 
-  $var_dir = "${nixadmutils::nixadmutilsdir}/var"
+  $var_dir = "${naudir}/var"
   file { $var_dir:
     ensure  => 'directory',
     mode    => '0775',
     owner   => $facts['wtfo_butler'],
     group   => $facts['wtfo_wheel'],
-    require => File[$nixadmutils::nixadmutilsdir],
+    require => File[$naudir],
   }
 
   $alerts = "${var_dir}/alerts.yaml"
@@ -75,7 +76,7 @@ class nixadmutils::install {
 
   $script_directories.each | String $dn | {
 
-    $target = "${nixadmutils::nixadmutilsdir}/${dn}"
+    $target = "${naudir}/${dn}"
 
     case $dn {
       'sbin': {
@@ -98,7 +99,7 @@ class nixadmutils::install {
       group   => $group,
       mode    => undef,
       source  => "puppet:///modules/nixadmutils/${dn}",
-      require => File[$nixadmutils::nixadmutilsdir],
+      require => File[$naudir],
       notify  => Exec[$target],
     }
 
@@ -110,14 +111,16 @@ class nixadmutils::install {
     }
   }
 
-  $sbin = "${nixadmutils::nixadmutilsdir}/sbin"
+  $sbin = "${naudir}/sbin"
+  $bin = "${naudir}/bin"
 
   $links = {
     "${sbin}/lspuppet" => 'puppet-ls',
     "${sbin}/pupenv" => 'pupcfg',
     "${sbin}/pupstatus" => 'pupaction',
     "${sbin}/puptrigger" => 'pupaction',
-    "${nixadmutils::nixadmutilsdir}/build/bin/gitx" => 'gitnox',
+    "${bin}/wtfo-logger" => 'wtflogger',
+    "${naudir}/build/bin/gitx" => 'gitnox',
   }
 
   $links.each | String $l, String $t | {
@@ -128,9 +131,9 @@ class nixadmutils::install {
   }
 
   $absents = [
-    "${nixadmutils::nixadmutilsdir}/bin/fw-list",
-    "${nixadmutils::nixadmutilsdir}/bin/pkglist",
-    "${nixadmutils::nixadmutilsdir}/sbin/pacwrap",
+    "${naudir}/bin/fw-list",
+    "${naudir}/bin/pkglist",
+    "${naudir}/sbin/pacwrap",
   ]
 
   $absents.each | String $a | {

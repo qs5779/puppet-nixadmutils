@@ -110,12 +110,13 @@ class nixadmutils::install {
     }
   }
 
-
   $sbin = "${nixadmutils::nixadmutilsdir}/sbin"
 
   $links = {
     "${sbin}/lspuppet" => 'puppet-ls',
     "${sbin}/pupenv" => 'pupcfg',
+    "${sbin}/pupstatus" => 'pupaction',
+    "${sbin}/puptrigger" => 'pupaction',
     "${nixadmutils::nixadmutilsdir}/build/bin/gitx" => 'gitnox',
   }
 

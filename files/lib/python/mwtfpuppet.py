@@ -5,7 +5,6 @@ import re
 import sys
 import errno
 import configparser
-import yaml
 from datetime import datetime
 import mwtf
 import mwtfalertable
@@ -287,8 +286,7 @@ class PuppetStatus(PuppetCommon):
   def check_last_run_yaml(self):
     lastrunyaml = self.pathname('lastrun')
     self.trace('lastrunyaml: %s' % lastrunyaml)
-    with open(lastrunyaml) as file:
-      summary = yaml.full_load(file)
+    summary = mwtf.load_yaml(lastrunyaml)
     ri = self._run_interval()
     result = self.secs_since_last_run(summary, ri) > ri
     self.debug('check_last_run_yaml returning %s' % result)

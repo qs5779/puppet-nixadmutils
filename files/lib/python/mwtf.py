@@ -1,6 +1,8 @@
 # -*- Mode: Python; tab-width: 2; indent-tabs-mode: nil -*-
 
 import os
+import yaml
+from packaging import version
 
 __HOSTNAME__ = None
 __DOMAINNAME__ = None
@@ -32,6 +34,14 @@ def uptime(elevate = True):
 
 def secsepochsince():
   return int(os.popen("date '+%s'").read().rstrip())
+
+def load_yaml(pathname):
+  with open(pathname) as file:
+    if version.parse(yaml.__version__) < version.parse('5.1'):
+      result = yaml.safe_load(file)
+    else:
+      result = yaml.full_load(file)
+  return result
 
 def file_age(pathname):
   if os.path.exists(pathname):

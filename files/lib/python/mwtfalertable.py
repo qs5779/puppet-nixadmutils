@@ -186,8 +186,7 @@ class Alerts(mwtf.Options):
 
   def __load_data(self, fpn):
     self.dirty = False
-    with open(fpn) as file:
-      self.data = yaml.full_load(file)
+    self.data = mwtf.load_yaml(fpn)
     if self.data is None:
       self.data = {}
       self.data[RESCUED] = str(datetime.now())

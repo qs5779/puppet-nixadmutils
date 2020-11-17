@@ -2,6 +2,24 @@
 
 import os
 
+__HOSTNAME__ = None
+__DOMAINNAME__ = None
+
+def hostname():
+  global __HOSTNAME__
+  if __HOSTNAME__ is None:
+    __HOSTNAME__ = os.popen('hostname').read().rstrip()
+  return __HOSTNAME__
+
+def domainname():
+  global __DOMAINNAME__
+  if __DOMAINNAME__ is None:
+    __DOMAINNAME__ = os.popen('hostname -d').read().rstrip()
+  return __DOMAINNAME__
+
+def fqdn():
+  return '%s.%s' % (hostname(), domainname())
+
 def uptime(elevate = True):
   try:
     with open('/proc/uptime', 'r') as f:

@@ -86,11 +86,6 @@ class Alerts(mwtf.Options):
       print(self.data)
     yaml.dump(self.data, sys.stdout)
 
-  def hostname(self):
-    if self.myhost is None:
-      self.myhost = os.popen('hostname').read().rstrip()
-    return self.myhost
-
   def send(self, args, body):
     self.mailer.send(args, body)
 
@@ -110,7 +105,7 @@ class Alerts(mwtf.Options):
 
   # private methods
   def __compose_subject(self, args):
-    hn = self.hostname()
+    hn = mwtf.hostname()
     if 'subject' in args:
       if re.search(hn, args['subject']):
         subject = args['subject']
@@ -211,7 +206,7 @@ class Alerts(mwtf.Options):
 
 class Alerter(mwtfscribe.Scribe):
   def __init__(self, opts={}):
-    dn = os.popen('hostname -d').read().rstrip()
+    dn = mwtf.domainname()
     maddr = 'root@%s' % dn
 
     aopts = {

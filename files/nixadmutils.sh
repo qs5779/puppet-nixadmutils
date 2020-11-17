@@ -17,13 +17,17 @@ then
   done
 fi
 
-if [[ -d "/opt/nixadmutils/lib/python" ]]
+NIXPYLOC=/opt/nixadmutils/lib/python
+
+if [[ -d "$NIXPYLOC" ]]
 then
   if [[ -n "$PYTHONPATH" ]]
   then
-    PYTHONPATH="/opt/nixadmutils/lib/python:${PYTHONPATH}"
+    if ! echo $PYTHONPATH | grep -q ${d} ; then
+      PYTHONPATH="${NIXPYLOC}:${PYTHONPATH}"
+    fi
   else
-    PYTHONPATH=/opt/nixadmutils/lib/python
+    PYTHONPATH="${NIXPYLOC}"
   fi
   export PYTHONPATH
 fi

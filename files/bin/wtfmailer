@@ -1,0 +1,98 @@
+#!/usr/bin/env python
+# -*- Mode: Python; tab-width: 2; indent-tabs-mode: nil -*-
+
+import sys
+import select
+import os.path
+import mwtf
+import mwtfmailer
+from optparse import OptionParser
+
+def main():
+  usage = "usage: %prog [options]"
+  parser = OptionParser(usage)
+  parser.add_option("-c", "--cc", action="append", dest="cc", help='specify carbon copy recipient(s)')
+  parser.add_option("-d", "--debug", action="count", dest="debug", default=0, help='increment debug level')
+  parser.add_option("-F", "--file", action="store", dest="infile", help='specify file to read message from (default STDIN)')
+  parser.add_option("-s", "--subject", action="store", dest="subject", help='specify subject')
+  parser.add_option("-t", "--to", action="append", dest="to", help='specify recipient(s)')
+  parser.add_option("-T", "--test", action="store_true", dest="test", default=False, help='sets test flag')
+  parser.add_option("-v", "--verbose", action="count", dest="verbose", default=0, help='increment verbosity level')
+  parser.add_option("-V", "--version", action="store_true", dest="version", default=False, help='show version and exit')
+
+  (opts, args) = parser.parse_args()
+
+  options = vars(opts)
+  if options['debug']>1:
+    print (options)
+    print (args)
+
+  if options['version']:
+    basenm = os.path.basename(sys.argv[0])
+    print('%s Version: 1.0.0' % basenm)
+    exit(0)
+
+  # gettrace = getattr(sys, 'gettrace', None)
+
+  # if gettrace is not None and gettrace():
+  #     print('Hmm, Big Debugger is watching me')
+  #     options['test'] = True
+
+  exit_code = 0
+  # domain = mwtf.domainname()
+  body = None
+  if options['infile'] is None:
+    if select.select([sys.stdin,],[],[],0.0)[0]:
+      body = sys.stdin.read()
+  else:
+    with open(options['infile']) as file:
+      body = file.read()
+
+  if not body:
+    body = 'the subject must say it all, as no body was given'
+
+  separator = ','
+
+  margs = {}
+
+  domain = mwtf.domainname()
+  default_address = 'root@%s' % domain
+
+  if options['to'] is None:
+    if len(args) > 0:
+      to = args.pop(0)
+    else:
+      to = default_address
+    margs['to'] = [to]
+  else:
+    margs['to'] = separator.join(options['to']).split(separator)
+
+  if options['cc'] is not None:
+    margs['cc'] = separator.join(options['cc']).split(separator)
+
+  if options['from'] is None:
+    margs['from'] = None
+    for e in ['EMAIL', 'USER', "LOGNAME"]:
+      try:
+        v = os.environ.get(e) # throws except if not set use os.getenv(e) for no exception returns None
+        if e == 'EMAIL':
+          margs['from'] = v
+        else:
+          margs['from'] = '%s@%s' % (v, domain)
+        break
+      except Exception:
+        pass
+    if margs['from'] is None:
+      margs['from'] = default_address
+  else:
+    margs['from'] = options['from']
+
+  if options['subject'] is not None:
+    margs['subject'] = options['subject']
+
+  alerter = mwtfmailer.Mailer(options)
+  exit_code = alerter.send(margs, body)
+  exit(exit_code)
+
+if __name__ == "__main__":
+    main()

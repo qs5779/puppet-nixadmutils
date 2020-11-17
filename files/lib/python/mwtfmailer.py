@@ -15,17 +15,27 @@ class Mailer(mwtf.Options):
 
   def send(self, args, body):
     if self.options['transport'] == 'sendmail':
-      self.__send_sendmail(args, body)
+      result = self.__send_sendmail(args, body)
+    elif self.options['transport'] == 'smtp':
+      result = self.__send_smtp(args, body)
+    else:
+      print("NOTICE: mailer %s is not supported!" % self.options['transport'])
+      result = 1
+    return result
 
   def __send_smtp(self, args, body):
     print("NOTICE: mailer __send_smtp not implemented yet!")
     print(args, body)
+    return 1
 
   def __send_sendmail(self, args, body):
     msg = MIMEText(body)
     msg["From"] = args.get('from', 'root')
     msg["To"] = args.get('to', 'root')
+    if 'cc' in args:
+      msg['Cc'] = args['cc']
     msg["Subject"] = args.get('subject', 'No subject provided')
     p = Popen(["/usr/sbin/sendmail", "-t", "-oi"], stdin=PIPE)
     # Both Python 2.X and 3.X
     p.communicate(msg.as_bytes() if sys.version_info >= (3,0) else msg.as_string())
+    return p.returncode

@@ -13,6 +13,7 @@ def main():
   parser = OptionParser(usage)
   parser.add_option("-c", "--cc", action="append", dest="cc", help='specify carbon copy recipient(s)')
   parser.add_option("-d", "--debug", action="count", dest="debug", default=0, help='increment debug level')
+  parser.add_option("-f", "--from", action="store", dest="from", help='specify sender address')
   parser.add_option("-F", "--file", action="store", dest="infile", help='specify file to read message from (default STDIN)')
   parser.add_option("-s", "--subject", action="store", dest="subject", help='specify subject')
   parser.add_option("-t", "--to", action="append", dest="to", help='specify recipient(s)')

@@ -37,5 +37,8 @@ class Mailer(mwtf.Options):
     msg["Subject"] = args.get('subject', 'No subject provided')
     p = Popen(["/usr/sbin/sendmail", "-t", "-oi"], stdin=PIPE)
     # Both Python 2.X and 3.X
+    if self.isdebug():
+      print(args)
+      print(body)
     p.communicate(msg.as_bytes() if sys.version_info >= (3,0) else msg.as_string())
     return p.returncode

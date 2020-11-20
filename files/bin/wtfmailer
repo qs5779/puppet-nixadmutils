@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- Mode: Python; tab-width: 2; indent-tabs-mode: nil -*-
 
+import re
 import sys
 import select
 import os.path
@@ -37,7 +38,7 @@ def main():
 
   # if gettrace is not None and gettrace():
   #     print('Hmm, Big Debugger is watching me')
-  #     options['test'] = True
+  #     options['to'] = ['qs5779@mail.com']
 
   exit_code = 0
   # domain = mwtf.domainname()
@@ -64,12 +65,16 @@ def main():
       to = args.pop(0)
     else:
       to = default_address
-    margs['to'] = [to]
+    margs['to'] = to
   else:
-    margs['to'] = separator.join(options['to']).split(separator)
+    margs['to'] = separator.join(options['to'])
 
   if options['cc'] is not None:
-    margs['cc'] = separator.join(options['cc']).split(separator)
+    margs['cc'] = separator.join(options['cc'])
+
+  for k in ['cc', 'to']:
+    if k in margs:
+      margs[k] = re.sub(r'[;:]', ',', margs[k])
 
   if options['from'] is None:
     margs['from'] = None

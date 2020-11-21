@@ -272,15 +272,21 @@ class PuppetStatus(PuppetCommon):
   def secs_since_last_run(self, summary, interval):
     if 'time' in summary and 'last_run' in summary['time']:
       lastrunsecs = summary['time']['last_run']
+      self.trace('summary lastrunsecs: %d' % lastrunsecs, 2)
     else:
       lastrunsecs = mwtf.file_age(self.pathname('lastrun'))
     now = mwtf.secsepochsince()
     elapsed = now - lastrunsecs
+    self.trace('now: %d lastrunsecs: %d' % (now, lastrunsecs), 2)
     if self.options.get('screen', sys.stdout.isatty()):
       lastrun = datetime.fromtimestamp(lastrunsecs)
       nextrun = datetime.fromtimestamp(now + (interval - elapsed))
       print('Puppet last run: %s ' % lastrun)
       print('Puppet next run: %s (estimated)' % nextrun)
+      if self.isdebug():
+        snow = datetime.fromtimestamp(now)
+        print('now: %s' % snow)
+        self.trace('elapsed: %d interval: %d' % (elapsed, interval))
     return elapsed
 
   def check_last_run_yaml(self):

@@ -1,17 +1,29 @@
 # -*- Mode: Python; tab-width: 2; indent-tabs-mode: nil -*-
 
-import mwtf
+import sys
 import logging
 from systemd.journal import JournalHandler
+import mwtf
 
 class Scribe(mwtf.Options):
   def __init__(self, opts={}):
-    super().__init__(opts)
+    sopts = {
+      'quiet': False,
+      'loud': False,
+      'screen': sys.stdout.isatty(),
+    }
+    sopts.update(opts)
+    super().__init__(sopts)
 
     self.log = logging.getLogger('wtfo')
 
     if ('level' not in self.options) or (self.options['level'] == None):
-      self.options['level'] = logging.INFO
+      if self.options['debug']:
+        self.options['level'] = logging.DEBUG
+      elif self.options['verbose']:
+        self.options['level'] = logging.INFO
+      else:
+        self.options['level'] = logging.WARNING
 
     if ('level' not in self.options) and (self.options['level'] != None):
       logging.basicConfig(filename=self.options['logfile'],format='%(asctime)s - %(message)s')
@@ -19,6 +31,11 @@ class Scribe(mwtf.Options):
       self.log.addHandler(JournalHandler(SYSLOG_IDENTIFIER=self.options['caller']))
 
     self.log.setLevel(self.options['level'])
+
+    if self.options['loud'] and not self.options['screen']:
+      self.options['screen'] = True
+    if self.options['quiet'] and self.options['screen']:
+      self.options['screen'] = False
 
     if self.options['screen']:
       console = logging.StreamHandler()

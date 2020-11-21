@@ -218,7 +218,6 @@ class Alerter(mwtfscribe.Scribe):
     sopts = {
       'caller': 'wtfalert',
       'level': WARNING,
-      'screen': sys.stdout.isatty(),
     }
     sopts.update(opts)
     super().__init__(sopts)

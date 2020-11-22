@@ -1,5 +1,7 @@
 #!/usr/bin/ruby
-# -*- Mode: Ruby; tab-width: 2; indent-tabs-mode: nil -*- vim:sta:et:sw=2:ts=2:syntax=ruby
+# frozen_string_literal: true
+#
+# vim:sta:et:sw=2:ts=2:ft=rb
 #
 # Revision History:
 # 20191028 - que - set wheel variable based on os family
@@ -122,7 +124,7 @@ if File.exist?(rkhlog)
         when %r{Info:}
           printing = 0
         end
-        if printing > 0
+        if printing.positive?
           puts line
         end
       end

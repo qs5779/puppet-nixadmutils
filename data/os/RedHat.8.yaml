@@ -1,15 +1,8 @@
 ---
 
-nixadmutils::pip_command: pip3
-
 nixadmutils::required_pips:
   - packaging
 
 nixadmutils::required_packages:
-  python2:
-    - python2-pip
-    - PyYAML
-  python3:
-    - python3-pip
-    - python3-distro
-    - PyYAML
+  - python3-distro
+  - PyYAML

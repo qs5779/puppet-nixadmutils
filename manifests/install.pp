@@ -8,22 +8,10 @@
 #   include nixadmutils::install
 class nixadmutils::install {
 
-  $pvkey = $facts['python_version'] ? {
-    /^2/    => 'python2',
-    /^3/    => 'python3',
-    default => 'dunno',
-  }
+  $packages = lookup('nixadmutils::required_packages', Array[String])
+  $pip_package = lookup('nixadmutils::pip_package', String)
 
-  $pip_install_command =
-  $packages = lookup('nixadmutils::required_packages', Hash[String,Array[String]])
-
-  if $pvkey in $packages {
-    $required_packages = $packages[$pvkey]
-    ensure_packages($required_packages, { ensure => present })
-  }
-  else {
-    $required_packages = undef
-  }
+  ensure_packages($packages + $pip_package, { ensure => present })
 
   $pips = lookup('nixadmutils::required_pips', Array[String], first, [])
 
@@ -35,7 +23,7 @@ class nixadmutils::install {
       exec {"${pip} install ${pkg}":
         path    => ['/usr/local/bin', '/usr/bin', '/bin'],
         unless  => "${pip} show ${pkg} > /dev/null",
-        require => Package[$required_packages]
+        require => Package[$pip_package]
       }
     }
   }

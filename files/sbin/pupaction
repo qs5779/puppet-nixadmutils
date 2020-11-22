@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- Mode: Python; tab-width: 2; indent-tabs-mode: nil -*-
 
 import mwtf
@@ -41,7 +41,7 @@ def main():
     exit(0)
 
   gettrace = getattr(sys, 'gettrace', None)
-  
+
   if gettrace is not None and gettrace():
       print('Hmm, Big Debugger is watching me')
       options['action'] = 'trigger'

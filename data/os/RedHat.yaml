@@ -1,0 +1,14 @@
+---
+
+nixadmutils::pip_command: pip3
+
+nixadmutils::pip_package: python3-pip
+
+nixadmutils::required_pips:
+  - packaging
+  - distro
+
+nixadmutils::required_packages:
+  - python-lockfile
+  - pytz
+  - PyYAML

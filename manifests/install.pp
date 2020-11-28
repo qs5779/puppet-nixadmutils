@@ -110,8 +110,6 @@ class nixadmutils::install {
   $links = {
     "${sbin}/lspuppet" => 'puppet-ls',
     "${sbin}/pupenv" => 'pupcfg',
-    "${sbin}/pupstatus" => 'pupaction',
-    "${sbin}/puptrigger" => 'pupaction',
     "${bin}/wtfo-logger" => 'wtflogger',
     "${naudir}/build/bin/gitx" => 'gitnox',
   }
@@ -124,9 +122,12 @@ class nixadmutils::install {
   }
 
   $absents = [
+    "${sbin}/pupstatus"
+    "${sbin}/puptrigger"
+    "${sbin}/pupaction"
     "${naudir}/bin/fw-list",
     "${naudir}/bin/pkglist",
-    "${naudir}/sbin/pacwrap",
+    '/usr/local/sbin/pacwrap',
   ]
 
   $absents.each | String $a | {

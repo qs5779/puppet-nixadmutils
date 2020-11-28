@@ -8,7 +8,7 @@ import mwtfscribe
 import mwtfmailer
 from datetime import datetime
 from logging import (CRITICAL, ERROR, WARNING, INFO, DEBUG, NOTSET)
-from filelock import Timeout, FileLock
+from lockfile import FileLock
 
 CREATED = ':created'
 RESCUED = ':rescued'
@@ -306,9 +306,14 @@ class Alerter(mwtfscribe.Scribe):
       raise
 
   def __alert_masked(self, action, args):
-    lock = FileLock(self.alerts.lockname, timeout=3)
-    with lock:
-      self.alerts.load()
-      self.__do_action(action, args)
-      self.alerts.save()
-
+    lock = LockFile(self.alerts.lockname)
+    while not lock.i_am_locking():
+      try:
+          lock.acquire(timeout=5)    # wait up to 5 seconds
+      except LockTimeout:
+          lock.break_lock()
+          lock.acquire()
+    self.alerts.load()
+    self.__do_action(action, args)
+    self.alerts.save()
+    lock.release()

@@ -45,11 +45,23 @@ do
 done
 shift $((OPTIND - 1))
 
+TMPFIL=/tmp/showpath
+
 case "$PATHVAR" in
   LOAD_LIBRARY_PATH )
     echo $LOAD_LIBRARY_PATH | tr ':' "\n"
   ;;
   PYTHONPATH )
+    cat << EOF > $TMPFIL
+#!/usr/bin/env python
+import sys
+print('sys.path')
+print(sys.path)
+EOF
+    chmod 700 "$TMPFIL"
+    "$TMPFIL"
+    echo ""
+    echo "environment variable PYTHONPATH:"
     echo $PYTHONPATH | tr ':' "\n"
   ;;
   PERL5LIB )

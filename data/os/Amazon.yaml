@@ -8,7 +8,6 @@ nixadmutils::required_pips:
   - packaging
   - distro
   - PyYAML
-
-nixadmutils::required_packages:
-  - python-lockfile
+  - feedparser
+  - lockfile
   - pytz

@@ -122,9 +122,9 @@ class nixadmutils::install {
   }
 
   $absents = [
-    "${sbin}/pupstatus"
-    "${sbin}/puptrigger"
-    "${sbin}/pupaction"
+    "${sbin}/pupstatus",
+    "${sbin}/puptrigger",
+    "${sbin}/pupaction",
     "${naudir}/bin/fw-list",
     "${naudir}/bin/pkglist",
     '/usr/local/sbin/pacwrap',

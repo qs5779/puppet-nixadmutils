@@ -4,10 +4,13 @@ nixadmutils::pip_command: pip3
 
 nixadmutils::pip_package: python3-pip
 
+nixadmutils::required_packages: []
+
 nixadmutils::required_pips:
   - packaging
   - distro
-  - PyYAML
   - feedparser
   - lockfile
   - pytz
+  - systemd-python
+  - PyYAML

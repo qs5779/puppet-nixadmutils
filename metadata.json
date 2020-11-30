@@ -1,6 +1,6 @@
 {
   "name": "qs5779-nixadmutils",
-  "version": "1.1.0",
+  "version": "1.9.0",
   "author": "Quien Sabe",
   "summary": "A collection of generic scripts I use frequently to administer Linux systems.",
   "license": "Apache-2.0",
@@ -58,14 +58,18 @@
       "operatingsystem": "Ubuntu",
       "operatingsystemrelease": [
         "16.04",
-        "18.04"
+        "18.04",
+        "20.04"
       ]
     },
     {
       "operatingsystem": "Archlinux"
     },
     {
-      "operatingsystem": "Gentoo"
+      "operatingsystem": "Amazon",
+      "operatingsystemrelease": [
+        "2"
+      ]
     }
   ],
   "requirements": [

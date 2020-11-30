@@ -8,7 +8,7 @@ import mwtfscribe
 import mwtfmailer
 from datetime import datetime
 from logging import (CRITICAL, ERROR, WARNING, INFO, DEBUG, NOTSET)
-from lockfile import FileLock
+from lockfile import LockFile, LockTimeout
 
 CREATED = ':created'
 RESCUED = ':rescued'

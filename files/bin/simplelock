@@ -13,7 +13,7 @@ SCRIPT=$(basename "$0")
 QUIET=0
 VERSION='Revision: 1.0.0 '
 
-function usage {
+usage() {
    cat <<EOF
 
 Usage:
@@ -37,13 +37,13 @@ do
   case $OPT in
     h ) usage ;;
     q ) QUIET=$((QUIET+=1)) ;;
-    v|V ) echo "$SCRIPT VERSION: $(echo $VERSION | awk '{ print $2 }')"; exit 0 ;;
+    v|V ) echo "$SCRIPT VERSION: $(echo "$VERSION" | awk '{ print $2 }')"; exit 0 ;;
     * ) if [ $QUIET -eq 0 ] ; then echo "Unrecognized option $OPT" ; fi ;;
   esac
 done
-shift $(($OPTIND - 1))
+shift $((OPTIND - 1))
 
-if [ -z "$1" -o -z "$2" ]
+if [ -z "$1" ] || [ -z "$2" ]
 then
   usage
 fi
@@ -61,23 +61,23 @@ LOCKNAME=${1%%.lock}
 TEMPFILE="${LOCKNAME}.${2}"
 LOCKFILE="${LOCKNAME}.lock"
 
-echo $2 > $TEMPFILE 2> /dev/null || {
-  if [ $QUIET -eq 0 ] ; then echo "You don't have permission to access $(dirname $TEMPFILE)" ; fi
+echo "$2" > "$TEMPFILE" 2> /dev/null || {
+  if [ $QUIET -eq 0 ] ; then echo "You don't have permission to access $(dirname "$TEMPFILE")" ; fi
   exit 1
 }
-ln $TEMPFILE $LOCKFILE > /dev/null 2>&1 && {
-  rm -f $TEMPFILE
+ln "$TEMPFILE" "$LOCKFILE" > /dev/null 2>&1 && {
+  rm -f "$TEMPFILE"
   exit 0
 }
-$KILLZERO $(cat $LOCKFILE) > /dev/null 2>&1 && {
-  rm -f $TEMPFILE
+$KILLZERO "$(cat "$LOCKFILE")" > /dev/null 2>&1 && {
+  rm -f "$TEMPFILE"
   exit 1
 }
 if [ $QUIET -eq 0 ] ; then echo "Removing stale lock file" ; fi
-rm -f $LOCKFILE
-ln $TEMPFILE $LOCKFILE > /dev/null 2>&1 && {
-  rm -f $TEMPFILE
+rm -f "$LOCKFILE"
+ln "$TEMPFILE" "$LOCKFILE" > /dev/null 2>&1 && {
+  rm -f "$TEMPFILE"
   exit 0
 }
-rm -f $TEMPFILE
+rm -f "$TEMPFILE"
 exit 1

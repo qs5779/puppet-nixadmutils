@@ -2,8 +2,14 @@
 
 import sys
 import logging
-from systemd.journal import JournalHandler
 import mwtf
+
+try:
+  from systemd.journal import JournalHandler
+except ImportError:
+  gJournal = False
+else:
+  gJournal = True
 
 class Scribe(mwtf.Options):
   def __init__(self, opts={}):
@@ -25,10 +31,13 @@ class Scribe(mwtf.Options):
       else:
         self.options['level'] = logging.WARNING
 
-    if ('level' not in self.options) and (self.options['level'] != None):
+    if ('logfile' in self.options) and (self.options['logfile'] != None):
       logging.basicConfig(filename=self.options['logfile'],format='%(asctime)s - %(message)s')
-    else:
+    elif gJournal:
       self.log.addHandler(JournalHandler(SYSLOG_IDENTIFIER=self.options['caller']))
+    else:
+      # TODO: SYSLOG_IDENTIFIER=self.options['caller']
+      self.log.addHandler(JournalHandler(address="/dev/log"))
 
     self.log.setLevel(self.options['level'])
 

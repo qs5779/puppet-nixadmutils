@@ -6,7 +6,9 @@ nixadmutils::required_packages:
   - python-pytz
   - python-distro
   - python-packaging
-  - python-systemd
   - python-yaml
   - python-feedparser
   - python-lockfile
+
+nixadmutils::journal_packages:
+  - python-systemd

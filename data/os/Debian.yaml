@@ -1,12 +1,16 @@
 ---
 
+nixadmutils::wheel: sudo
+
 nixadmutils::pip_package: python3-pip
 
 nixadmutils::required_packages:
   - python3-tz
   - python3-distro
   - python3-packaging
-  - python3-systemd
   - python3-lockfile
   - python3-yaml
   - python3-feedparser
+
+nixadmutils::journal_packages:
+  - python3-systemd

@@ -6,7 +6,9 @@ require 'spec_helper_acceptance'
 describe 'Utilitees for Linux' do
   let(:pp) do
     <<-MANIFEST
-      include ::nixadmutils
+      class { 'nixadmutils':
+        journal => false
+      }
     MANIFEST
   end
 

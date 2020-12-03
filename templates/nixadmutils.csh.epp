@@ -1,0 +1,5 @@
+<% | Stdlib::Absolutepath $install_dir |%>
+# Add <%= $install_dir %>/bin to the path for csh users
+set path = ($path <%= $install_dir %>/bin <%= $install_dir %>/sbin <%= $install_dir %>/build/bin)
+
+[ -d <%= $install_dir %>/lib/python ] && setenv PYTHONPATH <%= $install_dir %>/lib/python:${PYTHONPATH}

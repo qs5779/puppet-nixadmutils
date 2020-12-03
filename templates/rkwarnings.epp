@@ -1,0 +1,143 @@
+<% | Stdlib::Absolutepath $install_dir |%>
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+#
+# vim:sta:et:sw=2:ts=2:ft=rb
+#
+# Revision History:
+# 20191028 - que - set wheel variable based on os family
+#
+require 'getoptlong'
+
+basenm = File.basename($PROGRAM_NAME)
+SCRDIR = File.dirname($PROGRAM_NAME)
+
+# TODO: convert below perl to ruby
+
+debug = 0
+verbose = 0
+
+errors = 0
+VERSION = '$Revision: 1.0.1 $'.freeze
+
+opts = GetoptLong.new(
+  ['--debug', '-d', GetoptLong::NO_ARGUMENT],
+  ['--verbose', '-v', GetoptLong::NO_ARGUMENT],
+  ['--version', '-V', GetoptLong::NO_ARGUMENT],
+  ['--help', '--man', '-h', GetoptLong::NO_ARGUMENT],
+  #  [ '--repeat', '-n', GetoptLong::REQUIRED_ARGUMENT ],
+  #  [ '--name', GetoptLong::OPTIONAL_ARGUMENT ]
+)
+
+opts.each do |opt, _arg|
+  case opt
+  when '--help'
+    puts <<-EOM
+  usage: #{basenm} [-d] [-h] [-v] [-V]
+    where:
+      -d specify debug mode
+      -h show this message and exit
+      -v add verbosity
+      -V show version and exit
+EOM
+    exit 0
+  when '--version'
+    puts "#{basenm} #{VERSION[%r{\d+}]}"
+    exit 0
+  when '--verbose'
+    debug += 1
+  when '--debug'
+    verbose += 1
+  end
+end
+
+# Loads properties from a file with lines formatted as 'key=value' into a Hash.
+# Comments (lines starting with #) are skipped, as are lines starting with =.
+# Empty property values (lines ending with =) and property values
+# containing = are included in the Hash.
+
+def load_properties(properties_filename)
+  properties = {}
+  File.open(properties_filename, 'r') do |properties_file|
+    properties_file.read.each_line do |line|
+      line.strip!
+      next unless line[0] != '#' && line[0] != '='
+      i = line.index('=')
+      unless i.nil?
+        properties[line[0..i - 1].strip] = line[i + 1..-1].strip
+      end
+    end
+  end
+  properties
+end
+
+RCFILE = '<%= $install_dir %>/etc/nixadmutils.rc'.freeze
+
+if File.readable?(RCFILE)
+  phash = load_properties(RCFILE)
+else
+  STDERR.puts "File not (found|readable): #{RCFILE}"
+  exit 1
+end
+
+myos = `facter osfamily`
+myos.chomp!
+
+wheel = case myos
+        when 'Debian'
+          'sudo'
+        else
+          'wheel'
+        end
+
+rkhlog =  if phash.key?('RKHUNTERLOG')
+            phash['RKHUNTERLOG']
+          else
+            case myos
+            when 'Debian'
+              '/var/log/rkhunter.log'
+            else
+              '/var/log/rkhunter/rkhunter.log'
+            end
+          end
+
+if File.exist?(rkhlog)
+  unless File.readable?(rkhlog)
+    system("sudo chgrp #{wheel} #{rkhlog} ; sudo chmod g+r #{rkhlog}")
+  end
+
+  if File.readable?(rkhlog)
+    File.open(rkhlog, 'r') do |rkhlog_file|
+      printing = 0
+      rkhlog_file.read.each_line do |line|
+        case line
+        when %r{Info: Start date}
+          puts line
+        when %r{Info: End date}
+          puts line
+          puts '----------------------------------------------------------------'
+        when %r{The system checks took:}
+          puts line
+        when %r{\[ Warning \]}
+          printing = 1
+        when %r{\[ OK \]}
+          printing = 0
+        when %r{Info:}
+          printing = 0
+        end
+        if printing.positive?
+          puts line
+        end
+      end
+    end
+  else
+    STDERR.puts "File not readable: #{rkhlog}"
+    errors += 1
+  end
+
+else
+  STDERR.puts "File not found: #{rkhlog}"
+  errors += 1
+end
+
+exit errors

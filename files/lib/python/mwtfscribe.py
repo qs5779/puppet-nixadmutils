@@ -2,6 +2,7 @@
 
 import sys
 import logging
+import logging.handlers
 import mwtf
 
 try:
@@ -37,7 +38,7 @@ class Scribe(mwtf.Options):
       self.log.addHandler(JournalHandler(SYSLOG_IDENTIFIER=self.options['caller']))
     else:
       # TODO: SYSLOG_IDENTIFIER=self.options['caller']
-      self.log.addHandler(JournalHandler(address="/dev/log"))
+      self.log.addHandler(logging.handlers.SysLogHandler(address="/dev/log"))
 
     self.log.setLevel(self.options['level'])
 

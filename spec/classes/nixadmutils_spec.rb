@@ -13,8 +13,6 @@ describe 'nixadmutils' do
       it { is_expected.to contain_file('/opt/nixadmutils/lib').with_ensure('directory') }
       it { is_expected.to contain_file('/opt/nixadmutils/var').with_ensure('directory') }
       it { is_expected.to contain_file('/opt/nixadmutils/build').with_ensure('directory') }
-      it { is_expected.to contain_file('/etc/profile.d/nixadmutils.csh').with_ensure('file') }
-      it { is_expected.to contain_file('/etc/profile.d/nixadmutils.sh').with_ensure('file') }
       it { is_expected.to contain_file('/opt/nixadmutils/etc/nixadmutils.rc').with_ensure('file') }
       it { is_expected.to contain_file('/opt/nixadmutils/build/bin/gitx').with_ensure('link') }
       it { is_expected.to contain_file('/opt/nixadmutils/sbin/lspuppet').with_ensure('link') }
@@ -32,7 +30,18 @@ describe 'nixadmutils' do
       it { is_expected.to contain_exec('chmod 664 /opt/nixadmutils/var/alerts.yaml') }
       it { is_expected.to contain_class('Nixadmutils::Config') }
       it { is_expected.to contain_class('Nixadmutils::Install') }
-      it { is_expected.to contain_class('Nixadmutils::Params') }
+
+      [
+        '/etc/profile.d/nixadmutils.csh',
+        '/etc/profile.d/nixadmutils.sh',
+        '/opt/nixadmutils/sbin/rkcheck',
+        '/opt/nixadmutils/sbin/rkwarnings',
+        '/opt/nixadmutils/lib/python/mwtfalertable.py'
+      ].each do |pn|
+        it do
+          is_expected.to contain_file(pn).with_content(%r{/opt/nixadmutils})
+        end
+      end
 
       case os
       when %r{amazon}

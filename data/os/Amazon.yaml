@@ -1,5 +1,7 @@
 ---
 
+nixadmutils::journal: true
+
 nixadmutils::pip_command: pip3
 
 nixadmutils::pip_package: python3-pip
@@ -11,3 +13,6 @@ nixadmutils::required_pips:
   - lockfile
   - pytz
   - PyYAML
+
+nixadmutils::journal_pips:
+  - systemd-python

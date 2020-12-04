@@ -1,16 +1,17 @@
 ---
 
+nixadmutils::journal: false
+
 nixadmutils::pip_command: pip3
 
-nixadmutils::pip_package: python3-pip
+nixadmutils::pip_package: python3
+
+nixadmutils::required_packages:
+  - python36-distro
+  - python36-PyYAML
+  - python36-packaging
+  - python36-lockfile
+  - python36-pytz
 
 nixadmutils::required_pips:
-  - packaging
-  - distro
   - feedparser
-  - lockfile
-  - pytz
-  - PyYAML
-
-nixadmutils::journal_pips:
-  - systemd-python

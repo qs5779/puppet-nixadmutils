@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 describe 'nixadmutils' do
@@ -36,40 +38,42 @@ describe 'nixadmutils' do
         '/etc/profile.d/nixadmutils.sh',
         '/opt/nixadmutils/sbin/rkcheck',
         '/opt/nixadmutils/sbin/rkwarnings',
-        '/opt/nixadmutils/lib/python/mwtfalertable.py'
+        '/opt/nixadmutils/lib/python/mwtfalertable.py',
       ].each do |pn|
         it do
           is_expected.to contain_file(pn).with_content(%r{/opt/nixadmutils})
         end
       end
 
+      pipcmd = 'pip'
+      # rubocop:disable Style/WordArray
       case os
       when %r{amazon}
-        it { is_expected.to contain_package('python3-pip') }
-        %w[packaging distro PyYAML feedparser lockfile pytz systemd-python].each do |pkg|
-          it { is_expected.to contain_exec("pip3 install #{pkg}") }
-        end
+        package_list = %w[python3-pip]
+        pip_list = %w[packaging distro PyYAML feedparser lockfile pytz systemd-python]
+        pipcmd = 'pip3'
       when %r{archlinux}
-        %w[python-pip python-pytz python-distro python-packaging python-systemd python-yaml python-feedparser python-lockfile].each do |pkg|
-          it { is_expected.to contain_package(pkg) }
-        end
+        pip_list = []
+        package_list = %w[python-pip python-pytz python-distro python-packaging python-systemd python-yaml python-feedparser python-lockfile]
       when %r{debian|ubuntu}
-        %w[python3-pip python3-tz python3-distro python3-packaging python3-systemd python3-yaml python3-feedparser python3-lockfile].each do |pkg|
-          it { is_expected.to contain_package(pkg) }
+        pip_list = []
+        package_list = %w[python3-pip python3-tz python3-distro python3-packaging python3-systemd python3-yaml python3-feedparser python3-lockfile]
+      when %r{centos|oraclelinux|redhat|scientific}
+        pipcmd = 'pip3'
+        if os_facts[:operatingsystemrelease].to_i < 8
+          package_list = %w[python3 python36-distro python36-PyYAML python36-packaging python36-lockfile python36-pytz]
+          pip_list = %w[feedparser]
+        else
+          package_list = %w[python3-distro python3-pyyaml python3-feedparser python3-lockfile python3-pytz python3-systemd]
+          pip_list = %w[packaging]
         end
-      # when %r{centos|oraclelinux|redhat|scientific}
-      #   if os_facts[:operatingsystemrelease].to_i < 8
-      #     %w[packaging distro PyYAML feedparser lockfile pytz systemd-python].each do |pkg|
-      #       it { is_expected.to contain_exec("pip3 install #{pkg}") }
-      #     end
-      #   else
-      #     %w[packaging distro].each do |pkg|
-      #       it { is_expected.to contain_exec("pip3 install #{pkg}") }
-      #     end
-      #     %w[python3-pip python3-tz python3-distro python3-packaging python3-systemd python3-yaml python3-feedparser python3-lockfile].each do |pkg|
-      #       it { is_expected.to contain_package(pkg) }
-      #     end
-      #   end
+      end
+      # rubocop:enable Style/WordArray
+      package_list.each do |pkg|
+        it { is_expected.to contain_package(pkg) }
+      end
+      pip_list.each do |pip|
+        it { is_expected.to contain_exec("#{pipcmd} install #{pip}") }
       end
     end
   end

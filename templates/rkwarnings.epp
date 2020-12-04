@@ -1,7 +1,7 @@
 <% | Stdlib::Absolutepath $install_dir |%>
 #!/usr/bin/env ruby
 # frozen_string_literal: true
-#
+
 # vim:sta:et:sw=2:ts=2:ft=rb
 #
 # Revision History:
@@ -18,7 +18,7 @@ debug = 0
 verbose = 0
 
 errors = 0
-VERSION = '$Revision: 1.0.1 $'.freeze
+VERSION = '$Revision: 1.0.1 $'
 
 opts = GetoptLong.new(
   ['--debug', '-d', GetoptLong::NO_ARGUMENT],
@@ -71,7 +71,7 @@ def load_properties(properties_filename)
   properties
 end
 
-RCFILE = '<%= $install_dir %>/etc/nixadmutils.rc'.freeze
+RCFILE = '<%= $install_dir %>/etc/nixadmutils.rc'
 
 if File.readable?(RCFILE)
   phash = load_properties(RCFILE)
@@ -80,7 +80,7 @@ else
   exit 1
 end
 
-myos = `facter osfamily`
+myos = %x(facter osfamily)
 myos.chomp!
 
 wheel = case myos

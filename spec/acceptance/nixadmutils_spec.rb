@@ -17,7 +17,7 @@ describe 'Utilitees for Linux' do
   end
 
   describe command('PYTHONPATH=/opt/nixadmutils/lib/python /opt/nixadmutils/bin/wtfalert') do
-    its(:stderr) { should eq '' }
+    its(:stderr) { is_expected.to eq '' }
   end
 
   # describe file("/etc/feature.conf") do

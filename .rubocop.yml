@@ -18,12 +18,16 @@ AllCops:
   - "**/Puppetfile"
   - "**/Vagrantfile"
   - "**/Guardfile"
+  - pre-commit
 Style/CommandLiteral:
   Description: use %()
   EnforcedStyle: percent_x
 Style/RegexpLiteral:
   Description: use %r{}
   EnforcedStyle: percent_r
+Style/WordArray:
+  Description: use %w[]
+  EnforcedStyle: percent_w
 Metrics/LineLength:
   Description: People have wide screens, use them.
   Max: 200

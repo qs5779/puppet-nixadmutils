@@ -1,8 +1,0 @@
----
-
-nixadmutils::required_pips:
-  - packaging
-
-nixadmutils::required_packages:
-  - python3-distro
-  - PyYAML

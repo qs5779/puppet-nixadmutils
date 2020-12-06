@@ -18,7 +18,7 @@ def main():
     pacwrap info PACKAGE       # Display information about PACKAGE
     pacwrap install PACKAGE    # Installs PACKAGE
     pacwrap list [PACKAGE]     # Lists files in PACKAGE or installed packages when no PACKAGE specified.
-    pacwrap uninstall PACKAGE  # Unistalls PACKAGE
+    pacwrap uninstall PACKAGE  # Uninstalls PACKAGE
   """
   parser = OptionParser(usage)
   parser.add_option("-d", "--debug", action="count", dest="debug", default=0, help='increment debug level')
@@ -38,7 +38,7 @@ def main():
 
   if options['version']:
     basenm = os.path.basename(sys.argv[0])
-    print('%s Version: 1.0.0' % basenm)
+    print('%s Version: 1.0.1' % basenm)
     exit(0)
 
   args_nbr = len(args)

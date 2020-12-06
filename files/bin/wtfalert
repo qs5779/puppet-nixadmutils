@@ -11,6 +11,7 @@ def main():
   parser = OptionParser(usage)
   parser.add_option("-d", "--debug", action="count", dest="debug", default=0, help='increment debug level')
   parser.add_option("-D", "--store", action="store", dest="store", help='specify writable directory where to store data')
+  parser.add_option("-l", "--logfile", action="store", dest="logfile", help='specify logfile to use')
   parser.add_option("-s", "--script", action="store", dest="caller", default='wtfalert', help='specify caller name (defaults to wtfalert)')
   parser.add_option("-S", "--show", action="store_true", dest="show", default=False, help='show contents of the alerts storage')
   parser.add_option("-t", "--test", action="store_true", dest="test", default=False, help='sets test flag')

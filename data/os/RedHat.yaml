@@ -6,12 +6,10 @@ nixadmutils::pip_command: pip3
 
 nixadmutils::pip_package: python3
 
-nixadmutils::required_packages:
-  - python36-distro
-  - python36-PyYAML
-  - python36-packaging
-  - python36-lockfile
-  - python36-pytz
-
 nixadmutils::required_pips:
   - feedparser
+  - packaging
+  - distro
+  - PyYAML
+  - pytz
+  - lockfile

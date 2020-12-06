@@ -56,18 +56,30 @@ describe 'nixadmutils' do
         pip_list = []
         package_list = %w[python-pip python-pytz python-distro python-packaging python-systemd python-yaml python-feedparser python-lockfile]
       when %r{debian|ubuntu}
-        pip_list = []
-        package_list = %w[python3-pip python3-tz python3-distro python3-packaging python3-systemd python3-yaml python3-feedparser python3-lockfile]
+        case os_facts[:operatingsystemrelease]
+        when %r{^8}
+          pip_list = %w[distro packaging lockfile]
+          package_list = %w[python3-pip python3-tz python3-yaml python3-feedparser]
+        when %r{^16}
+          pip_list = %w[distro]
+          package_list = %w[python3-pip python3-tz python3-packaging python3-yaml python3-feedparser python3-lockfile]
+        else
+          pip_list = []
+          package_list = %w[python3-pip python3-tz python3-distro python3-packaging python3-systemd python3-yaml python3-feedparser python3-lockfile]
+        end
       when %r{centos|oraclelinux|redhat|scientific}
         pipcmd = 'pip3'
         if os_facts[:operatingsystemrelease].to_i < 8
-          package_list = %w[python3 python36-distro python36-PyYAML python36-packaging python36-lockfile python36-pytz]
-          pip_list = %w[feedparser]
+          package_list = %w[python3]
+          pip_list = %w[feedparser packaging distro PyYAML pytz lockfile]
         else
-          package_list = %w[python3-distro python3-pyyaml python3-feedparser python3-lockfile python3-pytz python3-systemd]
-          pip_list = %w[packaging]
+          package_list = %w[python3-distro python3-pyyaml python3-pytz python3-systemd]
+          pip_list = %w[packaging feedparser lockfile]
         end
       end
+      # puts "os: #{os} operatingsystemrelease: #{os_facts[:operatingsystemrelease]}"
+      # puts "packages: #{package_list}"
+      # puts "pips: #{pip_list}"
       # rubocop:enable Style/WordArray
       package_list.each do |pkg|
         it { is_expected.to contain_package(pkg) }

@@ -20,9 +20,9 @@ fi
 
 NIXPYLOC=<%= $install_dir %>/lib/python
 
-if [[ -d "$NIXPYLOC" ]]
+if [ -d "$NIXPYLOC" ]
 then
-  if [[ -n "$PYTHONPATH" ]]
+  if [ -n "$PYTHONPATH" ]
   then
     if ! echo $PYTHONPATH | grep -q ${d} ; then
       PYTHONPATH="${NIXPYLOC}:${PYTHONPATH}"

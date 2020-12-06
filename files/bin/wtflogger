@@ -38,6 +38,12 @@ def main():
     print('%s Version: 1.0.0' % basenm)
     exit(0)
 
+  # gettrace = getattr(sys, 'gettrace', None)
+  # if gettrace is not None and gettrace():
+  #     print('Hmm, Big Debugger is watching me')
+  #     options['logfile'] = '/tmp/debugging.log'
+  #     args = ['This is a debugging log entry.']
+
   nbrargs = len(args)
   if nbrargs < 1:
     raise ValueError("Pass exactly 1 arg ( " + usage + " )")

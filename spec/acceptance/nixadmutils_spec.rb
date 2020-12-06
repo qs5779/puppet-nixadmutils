@@ -21,7 +21,7 @@ describe 'Utilitees for Linux' do
   describe command("PYTHONPATH=/opt/nixadmutils/lib/python /opt/nixadmutils/bin/wtfalert -l #{logfn}") do
     its(:stderr) { is_expected.to eq '' }
     its(:exit_status) { is_expected.to eq 0 }
-    its(:stdout) { is_expected.to match %r{:created:} }
+    its(:stdout) { is_expected.to match %r{:created} }
   end
 
   describe command("PYTHONPATH=/opt/nixadmutils/lib/python /opt/nixadmutils/bin/wtflogger -Ll #{logfn} 'this is a test'") do

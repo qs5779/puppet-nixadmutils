@@ -2,8 +2,6 @@
 
 nixadmutils::journal: true
 
-nixadmutils::pip_command: pip3
-
 nixadmutils::pip_package: python3-pip
 
 # same as RedHat family

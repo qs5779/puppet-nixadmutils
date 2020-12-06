@@ -2,8 +2,6 @@
 
 nixadmutils::journal: false
 
-nixadmutils::pip_command: pip3
-
 nixadmutils::pip_package: python3
 
 nixadmutils::required_pips:

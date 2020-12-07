@@ -12,7 +12,6 @@ vagrant:
 travis_deb:
   provisioner: docker
   images:
-  - litmusimage/debian:8
   - litmusimage/debian:9
   - litmusimage/debian:10
 travis_ub_5:

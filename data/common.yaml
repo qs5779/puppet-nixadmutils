@@ -1,3 +1,12 @@
 ---
 
-nixadmutils::pip_command: pip
+nixadmutils::ensure: present
+nixadmutils::install_dir: /opt/nixadmutils
+nixadmutils::wheel: wheel
+nixadmutils::journal: true
+nixadmutils::pip_command: pip3
+
+nixadmutils::required_packages: []
+nixadmutils::required_pips: []
+nixadmutils::journal_packages: []
+nixadmutils::journal_pips: []

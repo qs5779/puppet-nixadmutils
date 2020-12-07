@@ -1,3 +1,4 @@
+<% | Stdlib::Absolutepath $install_dir |%>
 # -*- Mode: Python; tab-width: 2; indent-tabs-mode: nil -*-
 import os
 import sys
@@ -8,7 +9,7 @@ import mwtfscribe
 import mwtfmailer
 from datetime import datetime
 from logging import (CRITICAL, ERROR, WARNING, INFO, DEBUG, NOTSET)
-from lockfile import FileLock
+from lockfile import LockFile, LockTimeout
 
 CREATED = ':created'
 RESCUED = ':rescued'
@@ -24,7 +25,7 @@ class Alerts(mwtf.Options):
     self.myhost = None
     self.dirty = False
     if self.options.get('store') is None:
-      self.options['store'] = '/opt/nixadmutils/var'
+      self.options['store'] = '<%= $install_dir %>/var'
     if self.options.get('throttle') is None:
       self.options['throttle'] = 86400
     for sd in [self.options['store'], os.getenv('HOME'), '/tmp']:

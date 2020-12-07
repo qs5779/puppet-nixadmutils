@@ -2,12 +2,12 @@
 
 nixadmutils::journal: false
 
-nixadmutils::pip_package: python3
-
 nixadmutils::required_pips:
-  - feedparser
   - packaging
   - distro
-  - PyYAML
-  - pytz
   - lockfile
+
+nixadmutils::required_packages:
+  - python3-tz
+  - python3-yaml
+  - python3-feedparser

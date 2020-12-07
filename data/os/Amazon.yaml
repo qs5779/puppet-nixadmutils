@@ -1,13 +1,17 @@
 ---
 
-nixadmutils::pip_command: pip3
+nixadmutils::journal: true
 
 nixadmutils::pip_package: python3-pip
 
-nixadmutils::required_pips:
-  - packaging
-  - distro
-  - PyYAML
-  - feedparser
-  - lockfile
-  - pytz
+# same as RedHat family
+# nixadmutils::required_pips:
+#   - feedparser
+#   - packaging
+#   - distro
+#   - PyYAML
+#   - pytz
+#   - lockfile
+
+nixadmutils::journal_pips:
+  - systemd-python

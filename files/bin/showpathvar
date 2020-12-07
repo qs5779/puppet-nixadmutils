@@ -1,14 +1,12 @@
 #!/bin/sh
 
 # -*- Mode: Bash; tab-width: 2; indent-tabs-mode: nil -*-
-# Revision History:
-# YYYYmmdd - whoami - initial version
 #
 
 SCRIPT=$(basename "$0")
 PATHVAR=PATH
 
-function usage {
+usage() {
   cat << EOM
 usage: $SCRIPT [-h] [-l] [-p] [-P]
   where:
@@ -49,7 +47,7 @@ TMPFIL=/tmp/showpath
 
 case "$PATHVAR" in
   LOAD_LIBRARY_PATH )
-    echo $LOAD_LIBRARY_PATH | tr ':' "\n"
+    echo "$LOAD_LIBRARY_PATH" | tr ':' "\n"
   ;;
   PYTHONPATH )
     cat << EOF > $TMPFIL
@@ -62,13 +60,13 @@ EOF
     "$TMPFIL"
     echo ""
     echo "environment variable PYTHONPATH:"
-    echo $PYTHONPATH | tr ':' "\n"
+    echo "$PYTHONPATH" | tr ':' "\n"
   ;;
   PERL5LIB )
-    echo $PERL5LIB | tr ':' "\n"
+    echo "$PERL5LIB" | tr ':' "\n"
   ;;
   * )
-    echo $PATH | tr ':' "\n"
+    echo "$PATH" | tr ':' "\n"
   ;;
 esac
 

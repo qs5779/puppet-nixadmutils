@@ -1,15 +1,16 @@
-# Add /opt/nixadmutils/bin to the path for sh compatible users
+<% | Stdlib::Absolutepath $install_dir |%>
+# Add <%= $install_dir %>/bin to the path for sh compatible users
 
 for d in bin build/bin
 do
-  if ! echo $PATH | grep -q /opt/nixadmutils/${d} ; then
-    PATH=$PATH:/opt/nixadmutils/${d}
+  if ! echo $PATH | grep -q <%= $install_dir %>/${d} ; then
+    PATH=$PATH:<%= $install_dir %>/${d}
   fi
 done
 
 if groups | grep -q -e wheel -e sudo -e vagrant
 then
-  for d in /opt/nixadmutils/sbin /usr/local/sbin
+  for d in <%= $install_dir %>/sbin /usr/local/sbin
   do
     if ! echo $PATH | grep -q ${d} ; then
       PATH=$PATH:${d}
@@ -17,11 +18,11 @@ then
   done
 fi
 
-NIXPYLOC=/opt/nixadmutils/lib/python
+NIXPYLOC=<%= $install_dir %>/lib/python
 
-if [[ -d "$NIXPYLOC" ]]
+if [ -d "$NIXPYLOC" ]
 then
-  if [[ -n "$PYTHONPATH" ]]
+  if [ -n "$PYTHONPATH" ]
   then
     if ! echo $PYTHONPATH | grep -q ${d} ; then
       PYTHONPATH="${NIXPYLOC}:${PYTHONPATH}"

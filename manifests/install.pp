@@ -183,6 +183,7 @@ class nixadmutils::install (
       ensure  => $file_ensure,
       content => epp("nixadmutils/${base}.epp", $params),
       mode    => $mode,
+      group   => $wheel,
     }
   }
 

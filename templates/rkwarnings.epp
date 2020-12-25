@@ -1,5 +1,5 @@
 <% | Stdlib::Absolutepath $install_dir |%>
-#!/usr/bin/env ruby
+#!/usr/bin/ruby
 # frozen_string_literal: true
 
 # vim:sta:et:sw=2:ts=2:ft=rb

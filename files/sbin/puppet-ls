@@ -1,4 +1,9 @@
 #!/bin/bash
+# vim:sta:et:sw=2:ts=2:syntax=sh
+#
+# Revision History:
+# 20201230 - que - shellcheck corrections
+
 # tested on 0.25 and 3.8.4
 # https://github.com/deanwilson/puppet-scripts
 
@@ -83,8 +88,12 @@ fi
 catalog_filelist=$(mktemp -q "/tmp/$appname.XXXXXX")
 lister_filelist=$(mktemp -q "/tmp/$appname.XXXXXX")
 
+cleanup() {
+  rm -f "$catalog_filelist" "$lister_filelist"
+}
+
 # better clean up
-trap "rm -f $catalog_filelist $lister_filelist" 0 1 2 15
+trap cleanup 0 1 2 15
 
 # get files puppet knows about - you might not need both of these.
 (

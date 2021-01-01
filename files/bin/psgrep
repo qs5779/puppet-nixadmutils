@@ -2,11 +2,12 @@
 # vim:sta:et:sw=2:ts=2:syntax=sh
 #
 # Revision History:
-# 20150129 - richarjt - initial version
+# 20150129 - que - initial version
+# 20210101 - que - shellcheck corrections
 #
 
 SCRIPT=$(basename "$0")
-VERSION='$Revision: 1388 $'
+VERSION=1.4.0
 USECASE=1
 
 function usage {
@@ -31,7 +32,7 @@ do
   case $OPT in
     h ) usage ;;
     i ) USECASE=0 ;;
-    V ) echo "$SCRIPT VERSION: $VERSION"
+    V ) echo "$SCRIPT VERSION: $VERSION" ;;
     * ) echo "Unrecognized option $OPT" ;;
   esac
 done

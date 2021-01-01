@@ -44,7 +44,7 @@ do
   HN="$1"
   shift
   ssh-keygen -R "$HN"
-  if [ $PORT -ne 0 ]
+  if [ "$PORT" -ne 0 ]
   then
     ssh-keygen -R "[$HN]:${PORT}"
   fi

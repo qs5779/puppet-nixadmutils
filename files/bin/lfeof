@@ -5,10 +5,11 @@
 # 20160811 - que - initial version
 # 20171218 - que - corrected error messages, adusted version
 # 20171224 - que - cleanup tmp file
+# 20210101 - que - shellcheck corrections
 #
 
 SCRIPT=$(basename "$0")
-VERSION='$Revision: 1.03 $'
+VERSION=1.1.0
 VERBOSE=0
 DEBUG=0
 ERRORS=0
@@ -85,14 +86,14 @@ do
     then
       if [ $RC -eq 1 ]
       then
-        cp $B "$TMPF" "$SRC"
-        if [ $QUIET -eq 0 ]
+        cp "$B" "$TMPF" "$SRC"
+        if [ "$QUIET" -eq 0 ]
         then
           echo -e "corrected line feeds at end of file: \033[31m$SRC\033[0m"
         fi
         rm -f "$TMPF"
       else
-        if [ $QUIET -eq 0 ]
+        if [ "$QUIET" -eq 0 ]
         then
           echo "diff $TMPF $SRC returned $RC. $SRC left unchanged."
         fi
@@ -104,6 +105,6 @@ do
   fi
 done
 
-rm -f $TMPF
+rm -f "$TMPF"
 
 exit "$ERRORS"

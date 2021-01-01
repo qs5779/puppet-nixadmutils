@@ -37,7 +37,7 @@ do
   case $OPT in
     h ) usage ;;
     q ) QUIET=$((QUIET+=1)) ;;
-    v|V ) echo "$SCRIPT VERSION: $VERSION"
+    v|V ) echo "$SCRIPT VERSION: $VERSION" ;;
     * ) if [ $QUIET -eq 0 ] ; then echo "Unrecognized option $OPT" ; fi ;;
   esac
 done

@@ -1,11 +1,13 @@
 #!/bin/bash
 # vim:sta:et:sw=2:ts=2:syntax=sh
+#
 # Revision History:
 # 20180819 - que - initial version
+# 20210101 - que - shellcheck corrections
 #
 
 SCRIPT=$(basename "$0")
-VERSION='$Revision: 1.0.0 $'
+VERSION=1.0.1
 VERBOSE=0
 MAYBE=''
 ERRORS=0
@@ -51,8 +53,8 @@ do
     SRCDIR=$(dirname "$SRC") # TODO: make sure src dir is writable
     SRCBAS=$(basename "$SRC")
 
-    TGTBAS=$(echo $SRCBAS | tr -d "['\"]" | sed -e 's/ /-/g' -e 's/--/-/g' -e 's/\.\./\./g' -e 's/\//-/g')
-    NEWNM=${SRCDIR}/${TGTBAS}
+    TGTBAS=$(echo "$SRCBAS" | tr -d \" | sed -e 's/ /-/g' -e 's/--/-/g' -e 's/\.\./\./g' -e 's/\//-/g')
+    NEWNM="${SRCDIR}/${TGTBAS}"
     #echo "NEWNM: $NEWNM"
 
     if [ "$SRC" != "$TGTBAS" ]

@@ -1,15 +1,16 @@
 #!/bin/bash
 # vim:sta:et:sw=2:ts=2:syntax=sh
+#
 # Revision History:
 # 20170519 - que - initial verison
+# 20210101 - que - shellcheck corrections
 #
 
 SCRIPT=$(basename "$0")
-VERSION='$Revision: 1 $'
+VERSION=1.0.0
 VERBOSE=0
 DEBUG=0
 ERRORS=0
-ZONES=''
 CREDS="${HOME}/.updyndnsrc"
 
 function usage {
@@ -53,6 +54,7 @@ do
 done
 shift $((OPTIND - 1))
 
+# shellcheck source=/dev/null
 . "$CREDS" || echo "File not found|readable: $CREDS"
 
 curl "https://${DDNSUSER}:${DDNSKEY}@members.dyndns.org/v3/update?hostname=${1}&myip=${2}"

@@ -2,11 +2,12 @@
 # vim:sta:et:sw=2:ts=2:syntax=sh
 #
 # Revision History:
-# 20160811 - quiensabe - initial version
+# 20160811 - que - initial version
+# 20210101 - que - shellcheck corrections
 #
 
 SCRIPT=$(basename "$0")
-VERSION='$Revision: 2123 $'
+VERSION=2.2.0
 VERBOSE=0
 DEBUG=0
 ERRORS=0

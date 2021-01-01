@@ -1,13 +1,15 @@
 #!/bin/bash
 # vim:sta:et:sw=2:ts=2:syntax=sh
+#
 # Revision History:
-# 20161008 - quiensabe - check extension
+# 20161008 - que - check extension
 # 20170519 - que - crl doesn't accept a DIGEST
 # 20170708 - que - support s switch in getopts
+# 20210101 - que - shellcheck corrections
 #
 
 SCRIPT=$(basename "$0")
-VERSION='$Revision: 2526 $'
+VERSION=2.6.0
 VERBOSE=0
 DEBUG=0
 ERRORS=0
@@ -63,7 +65,7 @@ do
   shift
 
   EXT="${INFILE##*.}"
-  EXT=$(echo $EXT | tr '[A-Z]' ['a-z'])
+  EXT=$(echo "$EXT" | tr '[:upper]' '[:lower]')
   case "$EXT" in
     csr )
       SSLCMD=req
@@ -79,7 +81,12 @@ do
 
   if [ -r "$INFILE" ]
   then
-    openssl $SSLCMD -in "$INFILE" ${DIGEST} -noout -text
+    if [ -n "$DIGEST" ]
+    then
+      openssl $SSLCMD -in "$INFILE" "$DIGEST" -noout -text
+    else
+      openssl $SSLCMD -in "$INFILE" -noout -text
+    fi
   else
     echo "File not (found|readable): $INFILE" >&2
     ((ERRORS+=1))

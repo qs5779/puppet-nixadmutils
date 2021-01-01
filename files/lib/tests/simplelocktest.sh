@@ -2,7 +2,8 @@
 # vim:sta:et:sw=2:ts=2:syntax=sh
 #
 # Revision History
-#  20180529 - que - initial version
+# 20180529 - que - initial version
+# 20210101 - que - shellcheck corrections
 #
 
 OWNSLOCK=0
@@ -14,32 +15,32 @@ LOCKFILE=${LOCKNAME}.lock
 while getopts ":c" OPT
 do
   case $OPT in
-    q ) ((CLEANUP+=1)) ;;
+    c ) CLEANUP=$((CLEANUP+=1)) ;;
     * ) echo "Unrecognized option $OPT" ;;
   esac
 done
 shift $((OPTIND - 1))
 
-function trapped {
+trapped() {
   echo "$(date) $SCRIPT trap received, exiting"
-  if [ $OWNSLOCK -ne 0 -a $CLEANUP -ne 0 ]
+  if [ $OWNSLOCK -ne 0 ] && [ $CLEANUP -ne 0 ]
   then
     rm -f $LOCKFILE
   fi
   exit 1
 }
 
-function trapint {
+trapint() {
   echo "$(date) $SCRIPT INT received"
   trapped
 }
 
-function trapterm {
+trapterm() {
   echo "$(date) $SCRIPT TERM received"
   trapped
 }
 
-function trapquit {
+trapquit() {
   echo "$(date) $SCRIPT QUIT received"
   trapped
 }
@@ -70,9 +71,9 @@ done
 
 OWNSLOCK=1
 
-echo "Got lock!!\n";
+printf "Got lock!!\n";
 
-ls -l $LOCKFILE
+ls -l "$LOCKFILE"
 
 while [ $RC -eq 0 ]
 do

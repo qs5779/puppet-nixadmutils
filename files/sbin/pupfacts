@@ -112,6 +112,7 @@ then
 fi
 
 tmpfile=$(/bin/mktemp /tmp/facts.XXXXXXXXX) || exit 1
+# shellcheck disable=SC2086
 $SUDO $PUPPET facts $EPARAM > "$tmpfile"
 
 if [ -z "$OUTDIR" ]
@@ -132,20 +133,20 @@ fi
 if [ -n "$OUTFILE" ]
 then
   $SUDO rm -f /var/log/puppet_facts.json # the old default name
-  $SUDO cp -f $tmpfile "$OUTFILE"
+  $SUDO cp -f "$tmpfile" "$OUTFILE"
   $SUDO chgrp adm "$OUTFILE"
   $SUDO chmod g+r "$OUTFILE"
 fi
 
 if [ $QUIET -eq 0 ]
 then
-  cat $tmpfile
+  cat "$tmpfile"
   if [ -n "$OUTFILE" ]
   then
     echo "facts listed in: $OUTFILE"
   fi
 fi
 
-rm -f $tmpfile
+rm -f "$tmpfile"
 
 exit 0

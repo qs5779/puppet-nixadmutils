@@ -2,18 +2,18 @@
 # vim:sta:et:sw=2:ts=2:syntax=sh
 #
 # Revision History:
-# 20180706 - richarjt - initial version
+# 20180706 - que - initial version
+# 20210101 - que - shellcheck corrections
 #
 while [ -n "$1" ]
 do
   if [ -r "$1" ]
   then
-    ruby -c "$1"
-    if [ $? -ne 0 ]
+    if ruby -c "$1"
     then
-      ERRORS=$((ERRORS+1))
-    else
       echo "$1 syntax OK"
+    else
+      ERRORS=$((ERRORS+1))
     fi
   else
     echo "File not (found|readable): $1"

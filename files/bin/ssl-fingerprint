@@ -1,16 +1,12 @@
 #!/bin/bash
 # vim:sta:et:sw=2:ts=2:syntax=sh
 #
-# $Id: ssl-fingerprint 2123 2016-09-14 17:12:33Z jim $
-# $Date: 2016-09-14 13:12:33 -0400 (Wed, 14 Sep 2016) $
-# $HeadURL: svn+ssh://svn.wtfo-guru.com/var/lib/svn/wtfopuppet/branches/wip4/puppet/modules/usrlocal/files/bin/ssl-fingerprint $
-#
 # Revision History:
-# YYYYmmdd - quiensabe - initial version
+# 20210101 - que - shellcheck corrections
 #
 
 SCRIPT=$(basename "$0")
-VERSION='$Revision: 2123 $'
+VERSION=2.2.0
 VERBOSE=0
 DEBUG=0
 ERRORS=0

@@ -1,11 +1,13 @@
 #!/bin/bash
 # vim:sta:et:sw=2:ts=2:syntax=sh
+#
 # Revision History:
 # 20170519 - que - initial verison
+# 20210101 - que - shellcheck corrections
 #
 
 SCRIPT=$(basename "$0")
-VERSION='$Revision: 1 $'
+VERSION=1.0.1
 VERBOSE=0
 DEBUG=0
 ERRORS=0
@@ -78,17 +80,17 @@ then
   ZONES=$(sudo firewall-cmd --get-active-zones | grep '^[a-zA-Z]')
 fi
 
-if [ $DEBUG -ne 0 ]
+if [ "$DEBUG" -ne 0 ]
 then
     echo "ZONES: $ZONES"
 fi
 
 for zone in $ZONES
 do
-  sudo firewall-cmd --zone=${zone} --list-all
+  sudo firewall-cmd --zone="${zone}" --list-all
 done
 
-if [ $DIRECT -ne 0 ]
+if [ "$DIRECT" -ne 0 ]
 then
   echo "Chains:"
   sudo firewall-cmd --direct --get-all-chains

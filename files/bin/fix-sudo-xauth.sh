@@ -1,6 +1,10 @@
 #!/bin/bash
+# vim:sta:et:sw=2:ts=2:syntax=sh
+#
+# Revision History
+# 20210101 - que - shellcheck corrections
 
-DISPLAY_NUMBER=$(echo $DISPLAY | awk -F: '{print $2}' | awk -F. '{print $1}')
+DISPLAY_NUMBER=$(echo "$DISPLAY" | awk -F: '{print $2}' | awk -F. '{print $1}')
 EC=0
 
 if [ -n "$DISPLAY_NUMBER" ]
@@ -11,7 +15,7 @@ then
   if [ -n "$COOKIE" ]
   then
     echo "executing: sudo xauth add $COOKIE"
-    sudo xauth add $COOKIE
+    sudo xauth add "$COOKIE"
   else
     echo "No cookie found!"
     EC=1

@@ -1,16 +1,12 @@
 #!/bin/bash
-# -*- Mode: Bash; tab-width: 2; indent-tabs-mode: nil -*- vim:sta:et:sw=2:ts=2:syntax=sh
-#
-# $Id: ssl-purpose 2123 2016-09-14 17:12:33Z jim $
-# $Date: 2016-09-14 13:12:33 -0400 (Wed, 14 Sep 2016) $
-# $HeadURL: svn+ssh://svn.wtfo-guru.com/var/lib/svn/wtfopuppet/branches/wip4/puppet/modules/usrlocal/files/bin/ssl-purpose $
+# vim:sta:et:sw=2:ts=2:syntax=sh
 #
 # Revision History:
-# YYYYmmdd - quiensabe - initial version
+# 20210101 - que - shellcheck corrections
 #
 
 SCRIPT=$(basename "$0")
-VERSION='$Revision: 2123 $'
+VERSION=2.2.0
 VERBOSE=0
 DEBUG=0
 ERRORS=0
@@ -31,7 +27,7 @@ EOM
   exit 1
 }
 
-while getopts ":dhvV" opt
+while getopts ":dhsvV" opt
 do
   case "$opt" in
     d )
@@ -44,7 +40,7 @@ do
     s ) DIGEST=sha1 ;;
     v ) ((VERBOSE+=1)) ;;
     V )
-      echo "$SCRIPT VERSION: $(echo $VERSION | awk '{ print $2 }')"
+      echo "$SCRIPT VERSION: $VERSION"
       exit 0
     ;;
     * )
@@ -75,4 +71,4 @@ do
 done
 
 # ERRORS=$((ERRORS+=1)) # darn ubuntu default dash shell
-exit $ERRORS
+exit "$ERRORS"

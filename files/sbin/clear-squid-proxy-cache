@@ -1,15 +1,12 @@
 #!/bin/bash
-# -*- Mode: Bash; tab-width: 2; indent-tabs-mode: nil -*- vim:sta:et:sw=2:ts=2:syntax=sh
+# vim:sta:et:sw=2:ts=2:syntax=sh
 # Revision History:
 # 20190702 - que - initial verison
+# 20201230 - que - shellcheck corrections
 #
 
 SCRIPT=$(basename "$0")
-VERSION='$Revision: 1 $'
-VERBOSE=0
-DEBUG=0
 ERRORS=0
-BINDROOT=/var/bind9/chroot
 
 function usage {
   cat << EOM
@@ -71,7 +68,7 @@ do
     echo "cache_dir not found: $SD" >&2
     ((ERRORS+=1))
   fi
-  if [ $DIRTY -ne 0 ]
+  if [ "$DIRTY" -ne 0 ]
   then
     squid -z
   fi

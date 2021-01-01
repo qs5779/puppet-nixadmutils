@@ -1,14 +1,14 @@
 #!/bin/bash
-# -*- Mode: Bash; tab-width: 2; indent-tabs-mode: nil -*- vim:sta:et:sw=2:ts=2:syntax=sh
+# vim:sta:et:sw=2:ts=2:syntax=sh
+#
 # Revision History:
 # 20170719 - que - initial version
+# 20210101 - que - shellcheck corrections
 #
 
 SCRIPT=$(basename "$0")
-VERSION='$Revision: 2.0.0 $'
+VERSION=2.0.1
 VERBOSE=0
-DEBUG=""
-ERRORS=0
 
 function usage {
   cat << EOM
@@ -28,16 +28,14 @@ EOM
 while getopts ":dhvV" opt
 do
   case "$opt" in
-    d )
-      DEBUG=--debug
+    d|v )
       ((VERBOSE+=1))
     ;;
     h )
       usage
     ;;
-    v ) ((VERBOSE+=1)) ;;
     V )
-      echo "$SCRIPT VERSION: $(echo $VERSION | awk '{ print $2 }')"
+      echo "$SCRIPT VERSION: $VERSION"
       exit 0
     ;;
     * )
@@ -50,7 +48,7 @@ shift $((OPTIND - 1))
 
 TMPFIL=/tmp/fosl.$$
 
-lsof > $TMPFIL
-cat $TMPFIL| awk '{ print $2 " " $1; }' | sort -rn | uniq -c | sort -rn | head -20
+lsof > "$TMPFIL"
+awk '{ print $2 " " $1; }' "$TMPFIL" | sort -rn | uniq -c | sort -rn | head -20
 echo "view all output in: $TMPFIL"
 exit $?

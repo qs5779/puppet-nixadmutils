@@ -1,11 +1,13 @@
 #!/bin/bash
-# -*- Mode: Bash; tab-width: 2; indent-tabs-mode: nil -*- vim:sta:et:sw=2:ts=2:syntax=sh
+# vim:sta:et:sw=2:ts=2:syntax=sh
+#
 # Revision History:
 # 20180819 - que - initial version
+# 20210101 - que - shellcheck corrections
 #
 
 SCRIPT=$(basename "$0")
-VERSION='$Revision: 1.0.0 $'
+VERSION=1.0.1
 VERBOSE=0
 MAYBE=''
 ERRORS=0
@@ -30,7 +32,7 @@ do
     t ) MAYBE='echo [noex] ' ;;
     v ) ((VERBOSE+=1)) ;;
     V )
-      echo "$SCRIPT VERSION: $(echo $VERSION | awk '{ print $2 }')"
+      echo "$SCRIPT VERSION: $VERSION"
       exit 0
       ;;
     * )
@@ -39,7 +41,7 @@ do
       ;;
   esac
 done
-shift $(($OPTIND - 1))
+shift $((OPTIND - 1))
 
 while [ -n "$1" ]
 do
@@ -51,8 +53,8 @@ do
     SRCDIR=$(dirname "$SRC") # TODO: make sure src dir is writable
     SRCBAS=$(basename "$SRC")
 
-    TGTBAS=$(echo $SRCBAS | tr -d "['\"]" | sed -e 's/ /-/g' -e 's/--/-/g' -e 's/\.\./\./g' -e 's/\//-/g')
-    NEWNM=${SRCDIR}/${TGTBAS}
+    TGTBAS=$(echo "$SRCBAS" | tr -d \" | sed -e 's/ /-/g' -e 's/--/-/g' -e 's/\.\./\./g' -e 's/\//-/g')
+    NEWNM="${SRCDIR}/${TGTBAS}"
     #echo "NEWNM: $NEWNM"
 
     if [ "$SRC" != "$TGTBAS" ]
@@ -66,4 +68,4 @@ do
   fi
 done
 
-exit $ERRORS
+exit "$ERRORS"

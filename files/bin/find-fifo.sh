@@ -1,12 +1,13 @@
 #!/bin/bash
-# -*- Mode: Bash; tab-width: 2; indent-tabs-mode: nil -*- vim:sta:et:sw=2:ts=2:syntax=sh
+# vim:sta:et:sw=2:ts=2:syntax=sh
 #
 # Revision History:
-# 20160811 - quiensabe - initial version
+# 20160811 - que - initial version
+# 20210101 - que - shellcheck corrections
 #
 
 SCRIPT=$(basename "$0")
-VERSION='$Revision: 2123 $'
+VERSION=2.2.0
 VERBOSE=0
 DEBUG=0
 ERRORS=0
@@ -38,7 +39,7 @@ do
     ;;
     v ) ((VERBOSE+=1)) ;;
     V )
-      echo "$SCRIPT VERSION: $(echo $VERSION | awk '{ print $2 }')"
+      echo "$SCRIPT VERSION: $VERSION"
       exit 0
     ;;
     * )
@@ -51,4 +52,4 @@ shift $((OPTIND - 1))
 
 find . -type p
 
-exit $ERRORS
+exit "$ERRORS"

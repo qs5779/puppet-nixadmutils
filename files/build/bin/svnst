@@ -1,10 +1,9 @@
 #!/bin/bash
-# -*- Mode: Bash; tab-width: 2; indent-tabs-mode: nil -*- vim:sta:et:sw=2:ts=2:syntax=sh#
+# vim:sta:et:sw=2:ts=2:syntax=sh
 #
 # Revision History
-#  20150822 - richarjt - initial version
+# 20150822 - que - initial version
+# 20210101 - que - shellcheck corrections
 #
-
-SCRDIR=$(dirname "$0")
 
 svn status "$@" | sed -e 's/\\/\//g'

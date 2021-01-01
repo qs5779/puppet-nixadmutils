@@ -1,15 +1,30 @@
 #!/bin/bash
+# vim:sta:et:sw=2:ts=2:syntax=sh
+#
+# Revision History:
+# 20210101 - que - shellcheck corrections
 
 # This script expects $1 to be passed and for $1 to be the filesystem location
-# to a yaml file for which it will run syntax checks against.
+# to a file for which it will fix white space issues
 
 file="$1"
-FIXLFEOF=$2
 
 if file --mime "$file" | grep -q 'charset=binary'
 then
   exit 0
 fi
+
+case "$(uname -s)" in
+  MING* )
+    PLATFORM=win
+  ;;
+  Darwin )
+    PLATFORM=mac
+  ;;
+  * )
+    PLATFORM=dunno
+  ;;
+esac
 
 function auto_fix_lfeof {
   typeset F="$1"
@@ -25,7 +40,7 @@ function auto_fix_lfeof {
   elif [ "$(tail -c2 "$F")" == '' ]
   then
       # remove all but last newline
-    case "$platform" in
+    case "$PLATFORM" in
       win )
         sed -i "" -e :a -e '/^\n*$/{$d;N;};/\n$/ba' "$F" > "${F}.bak"
         mv -f "${F}.bak" "$F"
@@ -62,12 +77,12 @@ function auto_fix_whitespace {
 
   if grep -q '[[:space:]]$' "$F"
   then
-    if [[ "$platform" == "win" ]]
+    if [[ "$PLATFORM" == "win" ]]
     then
       # in windows, `sed -i` adds ready-only attribute to $F(I don't kown why), so we use temp file instead
       sed 's/[[:space:]]*$//' "$F" > "${F}.bak"
       mv -f "${F}.bak" "$file"
-    elif [[ "$platform" == "mac" ]]
+    elif [[ "$PLATFORM" == "mac" ]]
     then
       sed -i "" 's/[[:space:]]*$//' "$file"
     else

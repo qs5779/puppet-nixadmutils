@@ -37,4 +37,4 @@ done
 
 rm -f "$tmpfile"
 
-exit $ERRORS
+exit "$ERRORS"

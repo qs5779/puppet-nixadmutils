@@ -1,11 +1,12 @@
 #!/bin/bash
-# -*- Mode: Bash; tab-width: 2; indent-tabs-mode: nil -*- vim:sta:et:sw=2:ts=2:syntax=sh
+# vim:sta:et:sw=2:ts=2:syntax=sh
 # Revision History:
 # 20180811 - que - initial version
+# 20210101 - que - shellcheck corrections
 #
 
 SCRIPT=$(basename "$0")
-VERSION='$Revision: 1.0.0 $' # will be replaced by svn commit # if using subversion with Revision keywords on
+VERSION=1.0.1
 VERBOSE=0
 DEBUG=0
 ERRORS=0
@@ -37,7 +38,7 @@ do
     n ) LINES=$OPTARG ;;
     v ) ((VERBOSE+=1)) ;;
     V )
-      echo "$SCRIPT VERSION: $(echo $VERSION | awk '{ print $2 }')"
+      echo "$SCRIPT VERSION: $VERSION"
       exit 0
     ;;
     * )
@@ -76,6 +77,6 @@ case "$(facter osfamily)" in
   ;;
 esac
 
-$SUDO journalctl -l $MATCH | tail -n $LINES
+$SUDO journalctl -l "$MATCH" | tail -n "$LINES"
 
-exit $ERRORS
+exit "$ERRORS"

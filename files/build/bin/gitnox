@@ -31,4 +31,4 @@ else
   echo "File not found: $1"
 fi
 
-exit $ERRORS
+exit "$ERRORS"

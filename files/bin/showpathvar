@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# -*- Mode: Bash; tab-width: 2; indent-tabs-mode: nil -*-
+# vim:sta:et:sw=2:ts=2:syntax=sh
 #
 
 SCRIPT=$(basename "$0")

@@ -1,15 +1,13 @@
 #!/bin/bash
-# -*- Mode: Bash; tab-width: 2; indent-tabs-mode: nil -*- vim:sta:et:sw=2:ts=2:syntax=sh
+# vim:sta:et:sw=2:ts=2:syntax=sh
 #
 # Revision History:
 # 20190625 - que - initial version
+# 20210101 - que - shellcheck corrections
 #
 
 SCRIPT=$(basename "$0")
-VERSION='$Revision: 2123 $'
-VERBOSE=0
-DEBUG=0
-ERRORS=0
+VERSION=2.2.0
 
 function usage {
   cat << EOM
@@ -23,18 +21,14 @@ EOM
   exit 1
 }
 
-while getopts ":d:hvV" opt
+while getopts ":hV" opt
 do
   case "$opt" in
-    d )
-      DETAIL="$OPTARG"
-    ;;
     h )
       usage
     ;;
-    v ) ((VERBOSE+=1)) ;;
     V )
-      echo "$SCRIPT VERSION: $(echo $VERSION | awk '{ print $2 }')"
+      echo "$SCRIPT VERSION: $VERSION"
       exit 0
     ;;
     * )

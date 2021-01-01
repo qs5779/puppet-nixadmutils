@@ -1,8 +1,9 @@
 #!/bin/bash
-# -*- Mode: Bash; tab-width: 2; indent-tabs-mode: nil -*- vim:sta:et:sw=2:ts=2:syntax=sh
+# vim:sta:et:sw=2:ts=2:syntax=sh
 #
 # Revision History:
 # 20150126 - richarjt - initial version
+# 20210101 - que - shellcheck corrections
 #
 
 ERRORS=0
@@ -13,12 +14,11 @@ do
   shift
   if [ -r "$SRC" ]
   then
-    php -l "$SRC"
-    if [ $? -ne 0 ]
+    if php -l "$SRC"
     then
-      ((ERRORS+=1))
-    else
       echo "$SRC syntax OK"
+    else
+      ((ERRORS+=1))
     fi
   else
     echo "File not (found|readable): $SRC"
@@ -26,4 +26,4 @@ do
   fi
 done
 
-exit $ERRORS
+exit "$ERRORS"

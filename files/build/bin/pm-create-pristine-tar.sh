@@ -1,13 +1,21 @@
 #!/bin/bash
-# -*- Mode: Bash; tab-width: 2; indent-tabs-mode: nil -*- vim:sta:et:sw=2:ts=2:syntax=sh
+# vim:sta:et:sw=2:ts=2:syntax=sh
+#
+# Revision History:
+# 20210101 - que - shellcheck corrections
 
 SCRIPT=$(basename "$0")
-SCRDIR=$(readlink -f $(dirname "$0"))
 ERRORS=0
 VERBOSE=0
 PKGDIR=''
 MAYBE=''
 TGTPAR=''
+
+avend() {
+  echo "$1" >&2
+  ((ERRORS==1))
+  exit $ERRORS
+}
 
 function usage {
   cat << EOM
@@ -43,14 +51,14 @@ do
     ;;
   esac
 done
-shift $(($OPTIND - 1))
+shift $((OPTIND - 1))
 
 if [ -z "$PKGDIR" ]
 then
   PKGDIR=$(pwd)
 fi
 
-PKGDIR=$(readlink -f $PKGDIR)
+PKGDIR=$(readlink -f "$PKGDIR")
 
 if [ ! -f "${PKGDIR}/Build.PL" ]
 then
@@ -59,7 +67,6 @@ then
   usage
 fi
 
-PKGBAS=$(basename "$PKGDIR")
 PKGPAR=$(dirname "$PKGDIR")
 PKGVERS=$(pm-get-release.sh -D "$PKGDIR" version)
 PKGNAME=$(pm-get-release.sh -D "$PKGDIR" name)
@@ -69,7 +76,7 @@ if [ -z "$TGTPAR" ]
 then
   TGTPAR="$PKGPAR"
 else
-  TGTPAR=$(readlink -f $TGTPAR)
+  TGTPAR=$(readlink -f "$TGTPAR")
   if [ ! -d "$TGTPAR" ]
   then
     mkdir -p "$TGTPAR"
@@ -80,7 +87,7 @@ TGTDIR="${TGTPAR}/${TGTBAS}"
 TARBAS="${TGTBAS}.tar.gz"
 TAR="${TGTPAR}/${TARBAS}"
 
-if [ $VERBOSE -ne 0 ]
+if [ "$VERBOSE" -ne 0 ]
 then
   echo "PKGDIR:  $PKGDIR"
   echo "PKGPAR:  $PKGPAR"
@@ -99,7 +106,7 @@ then
     exit 1
   fi
   while true; do
-    read -p "Overwrite existing file $TARBAS ? (y/n) " yn
+    read -rp "Overwrite existing file $TARBAS ? (y/n) " yn
     case $yn in
       [Yy]* ) rm -f "$TAR"; break;;
       [Nn]* ) exit;;
@@ -112,7 +119,7 @@ fi
 
 EX=$(mktemp)
 
-cat << EOF > $EX
+cat << EOF > "$EX"
 blib/
 cpanfile*
 _build/
@@ -136,13 +143,13 @@ then
   echo "rsync exited with exit code: $?" >&2
   ((ERRORS+=RC))
 else
-  cd $TGTPAR
+  cd "$TGTPAR" || abend "cd $TGTPAR failed!!!"
   echo "creating tar in: $(pwd)"
   $MAYBE tar -czf "$TAR" "$TGTBAS"
   RC=$?
   ((ERRORS+=RC))
 fi
 
-rm -f $EX
+rm -f "$EX"
 
-exit $ERRORS
+exit "$ERRORS"

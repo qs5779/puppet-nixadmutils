@@ -1,5 +1,5 @@
 #!/bin/sh
-# -*- Mode: Bash; tab-width: 2; indent-tabs-mode: nil -*- vim:sta:et:sw=2:ts=2:syntax=sh
+# vim:sta:et:sw=2:ts=2:syntax=sh
 #
 # __BUILD_CHECKPOINT_BEFORE_ARTIFACT_BUNDLE__ - do not modify this line, at build time it will get modified with current checkpoint
 #
@@ -37,7 +37,7 @@ do
   case $OPT in
     h ) usage ;;
     q ) QUIET=$((QUIET+=1)) ;;
-    v|V ) echo "$SCRIPT VERSION: $(echo "$VERSION" | awk '{ print $2 }')"; exit 0 ;;
+    v|V ) echo "$SCRIPT VERSION: $VERSION" ;;
     * ) if [ $QUIET -eq 0 ] ; then echo "Unrecognized option $OPT" ; fi ;;
   esac
 done

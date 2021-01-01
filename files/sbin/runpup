@@ -1,18 +1,18 @@
 #!/bin/bash
-# -*- Mode: Bash; tab-width: 2; indent-tabs-mode: nil -*- vim:sta:et:sw=2:ts=2:syntax=sh
+# vim:sta:et:sw=2:ts=2:syntax=sh
 #
 # Revision History:
 # 20160825 - que - initial version
 # 20160901 - que - capture stderr in tee
 # 20161005 - que - ensure puppet path
 # 20200305 - que - quieter when no terminal
+# 20210101 - que - shellcheck corrections
 #
 
 SCRIPT=$(basename "$0")
-VERSION='Revision: 2.0.0'
+VERSION=2.0.1
 VERBOSE=0
 OPTIONS='--test'
-ERRORS=0
 SERVER=''
 OUTNM=agent
 
@@ -79,7 +79,7 @@ do
     ;;
     v ) ((VERBOSE+=1)) ;;
     V )
-      echo "$SCRIPT VERSION: $(echo $VERSION | awk '{ print $2 }')"
+      echo "$SCRIPT VERSION: $VERSION"
       exit 0
     ;;
     * )
@@ -112,7 +112,7 @@ fi
 if [ -n "$SERVER" ]
 then
   # get all to left of first dot
-  ALD=$(echo $SERVER | awk -F. '{print $1}')
+  ALD=$(echo "$SERVER" | awk -F. '{print $1}')
   CFGDIR=${ETCPUP}/puppet-${ALD}
 
   if [ ! -d "$CFGDIR" ]
@@ -139,13 +139,15 @@ fi
 
 if [ -t 1 ]
 then
-  #puppet agent --test 2>&1 | tee ${HOME}/${OUTNM}.out
+  OUTFIL="${HOME}/${OUTNM}.out"
+  OUTERR="${HOME}/${OUTNM}.err"
+  #puppet agent --test 2>&1 | tee "$OUTFIL"
   COMMAND="sudo $PUPPET agent --detailed-exitcodes $OPTIONS"
   echo "$SCRIPT: $VERSION"
   echo "executing: $COMMAND"
-  $COMMAND > >(tee ${HOME}/${OUTNM}.out) 2> >(tee ${HOME}/${OUTNM}.err >&2)
+  $COMMAND > >(tee "$OUTFIL") 2> >(tee "$OUTERR" >&2)
   RC=$?
-  echo "stdout saved in  ${HOME}/${OUTNM}.out"
+  echo "stdout saved in  $OUTFIL"
 
   case "$RC" in
     0 )
@@ -172,11 +174,12 @@ then
   esac
 
   echo "$MSG"
-  if [ -s ${HOME}/${OUTNM}.err ]
+  if [ -s "$OUTERR" ]
   then
-    cat ${HOME}/${OUTNM}.err
+    cat "$OUTERR"
   fi
 else
+  # shellcheck disable=SC2086
   sudo $PUPPET agent --detailed-exitcodes --no-daemonize --onetime --logdest syslog $OPTIONS
   RC=$?
 fi

@@ -1,13 +1,13 @@
 #!/bin/bash
-# -*- Mode: Bash; tab-width: 2; indent-tabs-mode: nil -*- vim:sta:et:sw=2:ts=2:syntax=sh
-#
+# vim:sta:et:sw=2:ts=2:syntax=sh
 #
 # Revision History:
-#  20130606 - richarjt - initial version
+# 20130606 - que - initial version
+# 20210101 - que - shellcheck corrections
 #
 
 SCRIPT=$(basename "$0")
-VERSION='$Revision: 1938 $'
+VERSION=2.0.0
 VERBOSE=0
 
 function usage {
@@ -29,7 +29,7 @@ do
       ;;
     v ) ((VERBOSE+=1)) ;;
     V )
-      echo "$SCRIPT VERSION: $(echo $VERSION | awk '{ print $2 }')"
+      echo "$SCRIPT VERSION: $VERSION"
       exit 0
       ;;
     * )
@@ -38,7 +38,7 @@ do
       ;;
   esac
 done
-shift $(($OPTIND - 1))
+shift $((OPTIND - 1))
 
 function signaled {
   echo "Exiting due to receipt of signal."
@@ -50,7 +50,7 @@ function signaled {
 #
 trap "signaled" INT HUP QUIT TERM
 
-find $@ | grep -v ' ' | grep -v '\.svn/' | while IFS= read -r  fn
+find "$@" | grep -v ' ' | grep -v '\.svn/' | while IFS= read -r  fn
 do
   echo "$fn"
 done

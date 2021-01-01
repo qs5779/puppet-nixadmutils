@@ -1,11 +1,12 @@
 #!/bin/bash
-# -*- Mode: Bash; tab-width: 2; indent-tabs-mode: nil -*- vim:sta:et:sw=2:ts=2:syntax=sh
+# vim:sta:et:sw=2:ts=2:syntax=sh
+#
 # Revision History:
-# YYYYmmdd - whoami - initial version
+# 20210101 - que - shellcheck corrections
 #
 
 SCRIPT=$(basename "$0")
-VERSION='$Revision: 0.1 $' # will be replaced by svn commit # if using subversion with Revision keywords on
+VERSION=1.0.0
 VERBOSE=0
 DEBUG=0
 ERRORS=0
@@ -39,7 +40,7 @@ do
     ;;
     v ) ((VERBOSE+=1)) ;;
     V )
-      echo "$SCRIPT VERSION: $(echo $VERSION | awk '{ print $2 }')"
+      echo "$SCRIPT VERSION: $VERSION"
       exit 0
     ;;
     * )
@@ -67,7 +68,7 @@ then
 
   if [ -n "$CN" ]
   then
-    certutil -d sql:${HOME}/.pki/nssdb -A -t TC -n "$CN" -i "$INFILE"
+    certutil -d "sql:${HOME}/.pki/nssdb" -A -t TC -n "$CN" -i "$INFILE"
   else
     echo "Failed to determine commonName for: $INFILE" >&2
     ((ERRORS+=1))
@@ -78,4 +79,4 @@ else
 fi
 
 # ERRORS=$((ERRORS+=1)) # darn ubuntu default dash shell
-exit $ERRORS
+exit "$ERRORS"

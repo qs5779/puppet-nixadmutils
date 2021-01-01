@@ -1,5 +1,5 @@
 #!/bin/bash
-# -*- Mode: Bash; tab-width: 2; indent-tabs-mode: nil -*- vim:sta:et:sw=2:ts=2:syntax=sh
+# vim:sta:et:sw=2:ts=2:syntax=sh
 # Revision History:
 # 20180819 - que - initial version
 #
@@ -30,7 +30,7 @@ do
     t ) MAYBE='echo [noex] ' ;;
     v ) ((VERBOSE+=1)) ;;
     V )
-      echo "$SCRIPT VERSION: $(echo $VERSION | awk '{ print $2 }')"
+      echo "$SCRIPT VERSION: $VERSION"
       exit 0
       ;;
     * )
@@ -39,7 +39,7 @@ do
       ;;
   esac
 done
-shift $(($OPTIND - 1))
+shift $((OPTIND - 1))
 
 while [ -n "$1" ]
 do
@@ -66,4 +66,4 @@ do
   fi
 done
 
-exit $ERRORS
+exit "$ERRORS"

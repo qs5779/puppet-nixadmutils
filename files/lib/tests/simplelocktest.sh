@@ -1,5 +1,5 @@
 #!/bin/sh
-# -*- Mode: Bash; tab-width: 2; indent-tabs-mode: nil -*- vim:sta:et:sw=2:ts=2:syntax=sh
+# vim:sta:et:sw=2:ts=2:syntax=sh
 #
 # Revision History
 #  20180529 - que - initial version
@@ -18,7 +18,7 @@ do
     * ) echo "Unrecognized option $OPT" ;;
   esac
 done
-shift $(($OPTIND - 1))
+shift $((OPTIND - 1))
 
 function trapped {
   echo "$(date) $SCRIPT trap received, exiting"

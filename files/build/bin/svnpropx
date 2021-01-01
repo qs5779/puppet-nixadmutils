@@ -1,25 +1,37 @@
 #!/bin/bash
-# -*- Mode: Bash; tab-width: 2; indent-tabs-mode: nil -*- vim:sta:et:sw=2:ts=2:syntax=sh#
+# vim:sta:et:sw=2:ts=2:syntax=sh#
 #
 # Dependencies:
 #  svnprop
 #
 # Revision History
-#  20110107 - richarjt - added header
-#  20120629 - richarjt - moved logic to svnprop
+# 20110107 - que - added header
+# 20120629 - que - moved logic to svnprop
+# 20210101 - que - shellcheck corrections
 #
 
+SCRIPT=$(basename "$0")
 SCRDIR=$(dirname "$0")
+ERRORS=0
 
-if [ -f "$1" ]; then
-  while [ -f "$1" ]
+if [ -n "$1" ]
+then
+  while [ -n "$1" ]
   do
-    ${SCRDIR}/svnprop -x "$1"
-#    svn propset svn:keywords "Id Author Date HeadURL Revision" "$1"
-#    svn propset svn:eol-style LF "$1"
-#    svn propset svn:executable '' "$1"
+    if [ -f "$1" ]
+    then
+      "${SCRDIR}"/svnprop -x "$1" || ((ERRORS+=1))
+        # svn propset svn:keywords "Id Author Date HeadURL Revision" "$1"
+        # svn propset svn:eol-style LF "$1"
+        # svn propset svn:executable '' "$1"
+    else
+      echo "File not found: $1"
+    fi
     shift
   done
 else
-  echo "File not found: $1"
+  echo "usage: $SCRIPT file [ file1 ... ]"
+  ((ERRORS+=1))
 fi
+
+exit "$ERRORS"

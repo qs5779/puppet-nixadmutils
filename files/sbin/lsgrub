@@ -67,4 +67,4 @@ else
   echo "File not (found|readable): $GRUBCFG" >&2
 fi
 
-exit $ERRORS
+exit "$ERRORS"

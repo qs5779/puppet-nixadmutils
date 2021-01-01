@@ -1,5 +1,5 @@
 #!/bin/bash
-# -*- Mode: Bash; tab-width: 2; indent-tabs-mode: nil -*- vim:sta:et:sw=2:ts=2:syntax=sh
+# vim:sta:et:sw=2:ts=2:syntax=sh
 # Revision History:
 # 20170519 - que - initial verison
 #
@@ -42,7 +42,7 @@ do
       ((VERBOSE+=1))
     ;;
     V )
-      echo "$SCRIPT VERSION: $(echo $VERSION | awk '{ print $2 }')"
+      echo "$SCRIPT VERSION: $VERSION"
       exit 0
     ;;
     * )
@@ -58,4 +58,4 @@ shift $((OPTIND - 1))
 curl "https://${DDNSUSER}:${DDNSKEY}@members.dyndns.org/v3/update?hostname=${1}&myip=${2}"
 
 # ERRORS=$((ERRORS+=1)) # darn ubuntu default dash shell
-exit $ERRORS
+exit "$ERRORS"

@@ -1,5 +1,5 @@
 #!/bin/bash
-# -*- Mode: Bash; tab-width: 2; indent-tabs-mode: nil -*- vim:sta:et:sw=2:ts=2:syntax=sh
+# vim:sta:et:sw=2:ts=2:syntax=sh
 # Revision History:
 # 20161008 - quiensabe - check extension
 # 20170519 - que - crl doesn't accept a DIGEST
@@ -40,7 +40,7 @@ do
     ;;
     v ) ((VERBOSE+=1)) ;;
     V )
-      echo "$SCRIPT VERSION: $(echo $VERSION | awk '{ print $2 }')"
+      echo "$SCRIPT VERSION: $VERSION"
       exit 0
     ;;
     * )
@@ -82,4 +82,4 @@ do
 done
 
 # ERRORS=$((ERRORS+=1)) # darn ubuntu default dash shell
-exit $ERRORS
+exit "$ERRORS"

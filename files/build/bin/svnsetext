@@ -1,13 +1,14 @@
 #!/bin/bash
-# -*- Mode: Bash; tab-width: 2; indent-tabs-mode: nil -*- vim:sta:et:sw=2:ts=2:syntax=sh#
+# vim:sta:et:sw=2:ts=2:syntax=sh
 #
 # Revision History
-#  20160609 - quiensabe - initial version
-#  20110111 - richarjt fixed svn propdel s
+# 20160609 - que - initial version
+# 20110111 - que - fixed svn propdel s
+# 20210101 - que - shellcheck corrections
 #
 
 SCRIPT=$(basename "$0")
-VERSION='$Revision: 1938 $'
+VERSION=2.0.0
 VERBOSE=0
 
 function usage {
@@ -29,7 +30,7 @@ do
       ;;
     v ) ((VERBOSE+=1)) ;;
     V )
-      echo "$SCRIPT VERSION: $(echo $VERSION | awk '{ print $2 }')"
+      echo "$SCRIPT VERSION: $VERSION"
       exit 0
       ;;
     * )
@@ -38,14 +39,14 @@ do
       ;;
   esac
 done
-shift $(($OPTIND - 1))
+shift $((OPTIND - 1))
 
 while [ -n "$1" ]
 do
   if [ -f "$1" ]
   then
     SRC="$1"
-    svn propset svn:externals --file "$SRC" $(dirname "$SRC")
+    svn propset svn:externals --file "$SRC" "$(dirname "$SRC")"
   else
     echo "File not found: $1"
   fi

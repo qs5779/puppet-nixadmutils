@@ -1,5 +1,5 @@
 #!/bin/bash
-# -*- Mode: Bash; tab-width: 2; indent-tabs-mode: nil -*- vim:sta:et:sw=2:ts=2:syntax=sh
+# vim:sta:et:sw=2:ts=2:syntax=sh
 #
 # Revision History:
 #  20181128 - richarjt - module virtual machines don't have an environmnet

@@ -1,5 +1,5 @@
 #!/bin/bash
-# -*- Mode: Bash; tab-width: 2; indent-tabs-mode: nil -*- vim:sta:et:sw=2:ts=2:syntax=sh
+# vim:sta:et:sw=2:ts=2:syntax=sh
 #
 # Revision History:
 # 20150129 - richarjt - initial version
@@ -31,11 +31,11 @@ do
   case $OPT in
     h ) usage ;;
     i ) USECASE=0 ;;
-    V ) echo "$SCRIPT VERSION: $(echo $VERSION | awk '{ print $2 }')"; exit 0 ;;
+    V ) echo "$SCRIPT VERSION: $VERSION"
     * ) echo "Unrecognized option $OPT" ;;
   esac
 done
-shift $(($OPTIND - 1))
+shift $((OPTIND - 1))
 
 OS=$(uname -s)
 

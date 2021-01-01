@@ -1,5 +1,5 @@
 #!/bin/sh
-# -*- Mode: Bash; tab-width: 2; indent-tabs-mode: nil -*- vim:sta:et:sw=2:ts=2:syntax=sh
+# vim:sta:et:sw=2:ts=2:syntax=sh
 #
 # Revision History:
 # 20180706 - richarjt - initial version
@@ -22,4 +22,4 @@ do
   shift
 done
 
-exit $ERRORS
+exit "$ERRORS"

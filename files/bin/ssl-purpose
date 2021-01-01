@@ -1,5 +1,5 @@
 #!/bin/bash
-# -*- Mode: Bash; tab-width: 2; indent-tabs-mode: nil -*- vim:sta:et:sw=2:ts=2:syntax=sh
+# vim:sta:et:sw=2:ts=2:syntax=sh
 #
 # $Id: ssl-purpose 2123 2016-09-14 17:12:33Z jim $
 # $Date: 2016-09-14 13:12:33 -0400 (Wed, 14 Sep 2016) $
@@ -44,7 +44,7 @@ do
     s ) DIGEST=sha1 ;;
     v ) ((VERBOSE+=1)) ;;
     V )
-      echo "$SCRIPT VERSION: $(echo $VERSION | awk '{ print $2 }')"
+      echo "$SCRIPT VERSION: $VERSION"
       exit 0
     ;;
     * )
@@ -75,4 +75,4 @@ do
 done
 
 # ERRORS=$((ERRORS+=1)) # darn ubuntu default dash shell
-exit $ERRORS
+exit "$ERRORS"

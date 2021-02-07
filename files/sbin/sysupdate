@@ -51,7 +51,7 @@ do
 done
 shift $((OPTIND - 1))
 
-# shellcheck disable=SC1091
+# shellcheck source=/dev/null
 [[ -f /etc/sysupdaterc ]] && . /etc/sysupdaterc
 # shellcheck source=/dev/null
 [[ -f "${HOME}/.sysupdaterc" ]] && . "${HOME}/.sysupdaterc"
@@ -107,6 +107,20 @@ case "$FAM" in
     $PREFIX apt upgrade
     if [ -f /var/run/reboot-required ]; then
       echo 'reboot required'
+    elif [ -r /etc/os-release ]
+    then
+      # shellcheck source=/dev/null
+      . /etc/os-realase
+      case "$ID" in
+        raspbian )
+          if command -v reboot-needed.sh >/dev/null 2>&1
+          then
+            reboot-needed.sh
+          fi
+        ;;
+        * )
+        ;;
+      esac
     fi
   ;;
   RedHat )

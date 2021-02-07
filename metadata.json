@@ -1,7 +1,7 @@
 {
   "name": "qs5779-nixadmutils",
-  "version": "2.0.0",
-  "author": "Quien Sabe",
+  "version": "2.0.1",
+  "author": "qs5779",
   "summary": "A collection of generic scripts I use frequently to administer Linux systems.",
   "license": "Apache-2.0",
   "source": "https://github.com/qs5779/puppet-nixadmutils.git",

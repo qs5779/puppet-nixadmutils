@@ -110,7 +110,7 @@ case "$FAM" in
     elif [ -r /etc/os-release ]
     then
       # shellcheck source=/dev/null
-      . /etc/os-realase
+      . /etc/os-release
       case "$ID" in
         raspbian )
           if command -v reboot-needed.sh >/dev/null 2>&1

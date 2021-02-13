@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) and this project adheres to [Semantic Versioning](http://semver.org).
 
+## [v2.0.2](https://github.com/qs5779/puppet-nixadmutils/tree/v2.0.2) (2021-02-08)
+
+[Full Changelog](https://github.com/qs5779/puppet-nixadmutils/compare/v2.0.1...v2.0.2)
+
+### UNCATEGORIZED PRS; LABEL THEM ON GITHUB
+
+- fixed spelling error [\#7](https://github.com/qs5779/puppet-nixadmutils/pull/7) ([qs5779](https://github.com/qs5779))
+
 ## [v2.0.1](https://github.com/qs5779/puppet-nixadmutils/tree/v2.0.1) (2021-02-07)
 
 [Full Changelog](https://github.com/qs5779/puppet-nixadmutils/compare/v2.0.0...v2.0.1)

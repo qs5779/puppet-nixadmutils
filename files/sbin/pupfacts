@@ -112,8 +112,9 @@ then
 fi
 
 tmpfile=$(/bin/mktemp /tmp/facts.XXXXXXXXX) || exit 1
+tmperrs=$(/bin/mktemp /tmp/facterrs.XXXXXXXXX) || exit 1
 # shellcheck disable=SC2086
-$SUDO $PUPPET facts $EPARAM > "$tmpfile"
+$SUDO $PUPPET facts $EPARAM 2> "$tmperrs" > "$tmpfile"
 
 if [ -z "$OUTDIR" ]
 then
@@ -147,6 +148,15 @@ then
   fi
 fi
 
-rm -f "$tmpfile"
+if [ -s "$tmperrs" ]
+then
+  grep -v autoload "$tmperrs" > "$tmpfile"
+  if [ -s "$tmpfile" ]
+  then
+    cat "$tmpfile"
+  fi
+fi
+
+rm -f "$tmperrs" "$tmpfile"
 
 exit 0

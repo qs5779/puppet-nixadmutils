@@ -4,8 +4,36 @@
 import os
 import sys
 import json
+import datetime
+import shutil
 import feedparser
 from optparse import OptionParser
+
+def load_quotes(fpn):
+  if os.path.isfile(fpn):
+    with open(fpn) as infile:
+      q = json.load(infile)
+  else:
+    NewsFeed = feedparser.parse('https://andiquote.org/rss.php')
+    count = 0
+    q = {}
+    for entry in NewsFeed.entries:
+      count += 1
+      idx = "%04d" % count
+      q[idx] = {}
+      q[idx]['author'] = entry['description']
+      q[idx]['quote'] = entry['title']
+      q[idx]['used'] = 0
+  return q
+
+def next_quote(quotes):
+  mval = 99999
+  mkey = False
+  for key in quotes:
+    if quotes[key]['used'] < mval:
+      mkey = key
+      mval = quotes[key]['used']
+  return mkey
 
 def main():
   usage = "usage: %prog [options]"
@@ -19,24 +47,32 @@ def main():
 
   if options['version']:
     basenm = os.path.basename(sys.argv[0])
-    print('%s Version: 1.0.0' % basenm)
+    print('%s Version: 2.0.0' % basenm)
     exit(0)
 
   try:
-    NewsFeed = feedparser.parse('https://www.quotedb.com/quote/quote.php?action=random_quote_rss')
-    entry = NewsFeed.entries[0]
-    if options['debug']:
-      print(json.dumps(entry, indent=2))
-    else:
-      print('%s - %s' % (entry['summary'], entry['title']))
+    today = datetime.datetime.now().strftime("%Y%m%d")
+    qfn = '/opt/nixadmutils/var/%s-andiquote.json' % today
+    quotes = load_quotes(qfn)
+    # print(json.dumps(quotes, indent=2))
+    nq = next_quote(quotes)
+    # print(nq)
+    quote = quotes[nq]['quote']
+    author = quotes[nq]['author']
+    quotes[nq]['used'] += 1
+    with open(qfn, "w") as outfile:
+      json.dump(quotes, outfile)
     failure = False
   except:
+    if options['debug']:
+      print("Unexpected error:", sys.exc_info()[0])
     failure = True
 
   if failure:
     quote = '"The phoenix must burn to emerge."'
     author = 'Janet Fitch'
-    print('%s - %s' % (quote, author))
+
+  print('%s - %s' % (quote, author))
 
 if __name__ == "__main__":
     main()

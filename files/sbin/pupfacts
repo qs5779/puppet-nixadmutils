@@ -46,6 +46,20 @@ do
 done
 shift $((OPTIND - 1))
 
+IAM=$(whoami)
+
+if [ "$IAM" != "root" ]
+then
+  SUDO=sudo
+else
+  SUDO=''
+fi
+
+if $SUDO test -f /root/flags/stopped.puppet
+then
+  exit 0
+fi
+
 EPARAM=''
 
 if [ ! -t 1 ]
@@ -82,15 +96,6 @@ then
     exit 1
   fi
   speak "Using puppet config: $CFG"
-fi
-
-IAM=$(whoami)
-
-if [ "$IAM" != "root" ]
-then
-  SUDO=sudo
-else
-  SUDO=''
 fi
 
 # if [ -e "$CFG" ]

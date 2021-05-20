@@ -3,4 +3,4 @@
 <% $vars.keys.sort.each |$key| { -%>
 <%= $key %>=<%= $vars[$key] %>
 <% } -%>
-# vim:sta:et:sw=2:ts=2:ft=sh
+# vim:ft=sh

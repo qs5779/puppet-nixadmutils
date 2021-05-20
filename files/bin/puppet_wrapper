@@ -30,7 +30,7 @@ function not_executable {
 }
 
 function prolix {
-  [[ "$DEBUG" != "0" ]] && echo "$1"
+  [[ "$DEBUG" != "0" ]] && echo "$1" >&2
 }
 
 RCFILE=/opt/nixadmutils/etc/nixadmutils.rc

@@ -50,6 +50,7 @@ then
     then
       CHRUBY_SOURCE=/usr/share/chruby/chruby.sh
       [[ -r "$CHRUBY_SOURCE" ]] || not_readable "$CHRUBY_SOURCE"
+      # shellcheck source=/dev/null
       source "$CHRUBY_SOURCE"
     else
       prolix "alread sourced: $CHRUBY_SOURCE"

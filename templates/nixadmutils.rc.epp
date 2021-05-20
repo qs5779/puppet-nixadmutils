@@ -1,0 +1,6 @@
+<% | Hash[String, String] $vars | -%>
+# file managed by puppet do not edit
+<% $vars.keys.sort.each |$key| { -%>
+<%= $key %>=<%= $vars[$key] %>
+<% } -%>
+# vim:sta:et:sw=2:ts=2:ft=sh

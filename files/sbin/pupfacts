@@ -74,18 +74,6 @@ function speak {
   fi
 }
 
-PUPPET=/opt/puppetlabs/bin/puppet
-if [ ! -x "$PUPPET" ]
-then
-  PUPPET=/usr/bin/puppet
-  if [ ! -x "$PUPPET" ]
-  then
-    echo "Failed to find the puppet binary!!!" >&2
-    exit 1
-  fi
-  speak "Using puppet at: $PUPPET"
-fi
-
 CFG=/etc/puppetlabs/puppet/puppet.conf
 if [ ! -f "$CFG" ]
 then
@@ -98,23 +86,8 @@ then
   speak "Using puppet config: $CFG"
 fi
 
-# if [ -e "$CFG" ]
-# then
-#   E=$($SUDO grep ^environment "$CFG" | head -1 | awk -F= '{ print $2 }' | tr -d ' ')
-#   if [ -n "$E" ]
-#   then
-#     EPARAM="--environment $E"
-#   fi
-# fi
-
-if file "$(readlink -f "$PUPPET")" | grep -qi 'ruby script'
-then
-  if $SUDO test -f /root/flags/nowarn.puppet
-  then
-    # suppress deprecation warnings for ruby v2.7 touch /root/flags/nowarn.puppet
-    PUPPET="ruby -W0 $PUPPET"
-  fi
-fi
+PUPPET=$(which puppet_wrapper 2> /dev/null)
+[[ -x "$PUPPET" ]] || exit 1
 
 tmpfile=$(/bin/mktemp /tmp/facts.XXXXXXXXX) || exit 1
 tmperrs=$(/bin/mktemp /tmp/facterrs.XXXXXXXXX) || exit 1

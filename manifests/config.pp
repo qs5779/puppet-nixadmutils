@@ -7,7 +7,7 @@
 # @example
 #   class { 'nixadmutils::config':
 #     ensure            => $ensure,
-#     install_directory => $wheel,
+#     install_directory => $install_directory,
 #     wheel             => $wheel,
 #   }
 #
@@ -30,10 +30,19 @@ class nixadmutils::config (
 
   $cfgdir = "${install_dir}/etc"
 
+  # file { "${cfgdir}/nixadmutils.rc":
+  #   ensure  => $file_ensure,
+  #   mode    => '0644',
+  #   content => template('nixadmutils/nixadmutils.rc.erb'),
+  #   require => File[$cfgdir],
+  # }
+
+  $variables = lookup('nixadmutils::config::variables', Hash[String,String], 'deep')
+
   file { "${cfgdir}/nixadmutils.rc":
     ensure  => $file_ensure,
     mode    => '0644',
-    content => template('nixadmutils/nixadmutils.rc.erb'),
+    content => epp('nixadmutils/nixadmutils.rc.epp', { vars => $variables }),
     require => File[$cfgdir],
   }
 }

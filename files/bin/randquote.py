@@ -1,41 +1,270 @@
 #!/usr/bin/env python3
 # -*- Mode: Python; tab-width: 2; indent-tabs-mode: nil -*-
 
-import os
-import sys
+from bs4 import BeautifulSoup
+from datetime import datetime
+import glob
 import json
-import datetime
-import shutil
-import feedparser
+import logging
 from optparse import OptionParser
+from pathlib import Path
+import re
+import requests
+import sqlite3
 
-def load_quotes(fpn):
-  if os.path.isfile(fpn):
-    with open(fpn) as infile:
-      q = json.load(infile)
-  else:
-    NewsFeed = feedparser.parse('https://andiquote.org/rss.php')
-    count = 0
-    q = {}
-    for entry in NewsFeed.entries:
-      count += 1
-      idx = "%04d" % count
-      q[idx] = {}
-      q[idx]['author'] = entry['description']
-      q[idx]['quote'] = entry['title']
-      q[idx]['used'] = 0
-  return q
+class QuoteServer():
+  def __init__(self, options):
+    self.DBVERSION = '1'
+    self.DBDIRECTORY = Path('/opt/nixadmutils/var')
 
-def next_quote(quotes):
-  mval = 99999
-  mkey = False
-  for key in quotes:
-    if quotes[key]['used'] < mval:
-      mkey = key
-      mval = quotes[key]['used']
-  return mkey
+    try:
+      if not Path.is_dir(self.DBDIRECTORY):
+        Path.mkdir(self.DBDIRECTORY, parents=True)
+      logname = str(self.DBDIRECTORY / 'randomquotes.log')
+      if options['debug']:
+        llevel = logging.DEBUG
+      else:
+        llevel = logging.INFO
+
+      logging.basicConfig(filename=logname,
+                            filemode='a',
+                            format='%(asctime)s %(name)s %(levelname)s %(message)s',
+                            datefmt='%H:%M:%S',
+                            level=llevel)
+
+      logging.info("Running Quote Server")
+
+      self.logger = logging.getLogger('QuoteServer')
+      self.dbfilenm = self.DBDIRECTORY / 'randomquotes.sqlite'
+      self.dbconn = None
+      self.regex_unknown = re.compile('unknown', re.IGNORECASE)
+      self.notices = {}
+      self.warnings = {}
+      self.errors = {}
+
+    except Exception as e:
+      raise
+
+  def __today(self):
+    return datetime.now().strftime('%Y%m%d')
+
+  def __create_quote_database(self):
+    connection = sqlite3.connect(self.dbfilenm)
+    cursor = connection.cursor()
+    cursor.execute('''CREATE TABLE qdbinfo (name TEXT PRIMARY KEY, value TEXT);''')
+    # connection.commit()
+
+    cursor.execute("INSERT INTO qdbinfo (name,value) VALUES ('version', '%s');" % self.DBVERSION)
+    cursor.execute("INSERT INTO qdbinfo (name,value) VALUES ('scraped', '%s');" % 0)
+    # connection.commit()
+
+    cursor.execute('''CREATE TABLE authors (
+      author_id integer PRIMARY KEY,
+      author_name text UNIQUE NOT NULL
+    );''')
+    # connection.commit()
+
+    cursor.execute('''CREATE TABLE categories (
+      category_id integer PRIMARY KEY,
+      category text UNIQUE NOT NULL
+    );''')
+    # connection.commit()
+
+    cursor.execute('''CREATE TABLE quotes (
+      quote_id integer PRIMARY KEY,
+      author_id integer,
+      category_id integer,
+      quote text UNIQUE NOT NULL,
+      used integer,
+      FOREIGN KEY (author_id)
+        REFERENCES authors (author_id),
+      FOREIGN KEY (category_id)
+        REFERENCES authors (category_id)
+    );''')
+    self.dbconn = connection
+    self.__commit()
+    self.__import_quotes()
+
+  def __commit(self):
+    self.dbconn.commit()
+
+  def __update_quote_database(self):
+    connection = sqlite3.connect(self.dbfilenm)
+    # check that version is current
+    self.dbconn = connection
+
+  def __add_author(self, author):
+    if re.search(self.regex_unknown, author):
+      author = 'Author Unknown'
+
+    query = '''SELECT author_id FROM authors WHERE author_name = ?'''
+    cursor = self.dbconn.cursor()
+    cursor.execute(query, (author,))
+    row = cursor.fetchone()
+    if not row:
+      query = '''INSERT INTO authors (author_name) VALUES(?)'''
+      cursor.execute(query,(author,))
+      aid = cursor.lastrowid
+      self.__commit()
+    else:
+      aid = row[0]
+    return aid
+
+  def __add_category(self, category = 'None'):
+    query = '''SELECT category_id FROM categories WHERE category = ?'''
+    cursor = self.dbconn.cursor()
+    cursor.execute(query, (category,))
+    row = cursor.fetchone()
+    if not row:
+      query = '''INSERT INTO categories (category) VALUES(?)'''
+      cursor.execute(query,(category,))
+      cid = cursor.lastrowid
+      self.__commit()
+    else:
+      cid = row[0]
+    return cid
+
+  def __add_quote(self, author, quote, used = 0, category = 'None'):
+    query = '''SELECT quote_id FROM quotes WHERE quote = ?'''
+    cursor = self.dbconn.cursor()
+    cursor.execute(query, (quote,))
+    row = cursor.fetchone()
+    if row is None:
+      cid = self.__add_category(category)
+      aid = self.__add_author(author)
+      query = '''INSERT INTO quotes (category_id, author_id, quote, used) VALUES (?,?,?,?)'''
+      cursor.execute(query, (cid, aid, quote, int(used),))
+      self.__commit()
+    else:
+      notice = 'duplicate: %a' % quote
+      if notice in self.notices:
+        self.notices[notice] += 1
+      else:
+        self.notices[notice] = 1
+
+  def __import_quotes_from(self, qfp):
+    if qfp.is_file():
+      with open(qfp) as infile:
+        quotes = json.load(infile)
+      for key in quotes:
+        self.__add_quote(quotes[key]['author'], quotes[key]['quote'], quotes[key]['used'])
+
+  def __import_quotes(self):
+    mask = str(self.DBDIRECTORY / '20*-andiquote.json')
+    for name in glob.glob(mask):
+      self.__import_quotes_from(Path(name))
+
+  def __connect(self):
+    if self.dbconn is None:
+      if not Path.exists(self.dbfilenm):
+        self.__create_quote_database()
+      else:
+        self.__update_quote_database()
+      if self.__scrape():
+        self.__scrape_brainy_qod()
+        self.__scraped()
+
+  def __add_notice(self, notice):
+    if notice in self.notices:
+      self.notices[notice] += 1
+    else:
+      self.notices[notice] = 1
+
+  def __add_error(self, message):
+      if message in self.errors:
+        self.errors[message] += 1
+      else:
+        self.errors[message] = 1
+
+  def __scraped(self):
+    query = '''INSERT OR REPLACE INTO qdbinfo (name, value) VALUES(?, ?)'''
+    cursor = self.dbconn.cursor()
+    cursor.execute(query, ('scraped', self.__today()))
+    self.__commit()
+
+  def __scrape(self):
+    query = '''SELECT value FROM qdbinfo WHERE name = ?'''
+    cursor = self.dbconn.cursor()
+    cursor.execute(query, ('scraped',))
+    row = cursor.fetchone()
+    if row:
+      last = row[0]
+    else:
+      last = 0
+    return int(self.__today()) > int(last)
+
+  def __scrape_brainy_qod(self):
+    url = 'https://www.brainyquote.com/quote_of_the_day'
+    try:
+      response_data = requests.get(url).text[:]
+      soup = BeautifulSoup(response_data, 'html.parser')
+      display = re.compile('^display:')
+      # <div class="grid-item qb clearfix bqQt">
+      qnbr = scraped = failed = 0
+      for item in soup.find_all("div", class_="grid-item qb clearfix bqQt"):
+        # print(item)
+        # <h2 class="qotd-h2">Funny Quote Of the Day</h2>
+        qnbr += 1
+        category = item.find("h2",class_="qotd-h2")
+        if category:
+          tcategory = category.get_text().strip()
+          logging.debug('category: %s' % tcategory)
+        else:
+          tcategory = 'None'
+        # <div style="display: flex;justify-content: space-between">
+        quote = item.find("div", { "style" : display })
+        if quote:
+          tquote = quote.get_text().strip()
+          logging.debug('quote: %s' % tquote)
+        else:
+          logging.warning('Scrape quote number %d failed.' % qnbr)
+          failed += 1
+          continue
+        # <a href="/authors/jonathan-swift-quotes" class="bq-aut qa_155269 oncl_a" title="view author">Jonathan Swift</a>
+        author = item.find("a", {"title" : "view author"})
+        if author:
+          tauthor = author.get_text().strip()
+          logging.debug('author: %s' % tauthor)
+        else:
+          logging.warning('Scrape author number %d failed.' % qnbr)
+          failed += 1
+          continue
+        self.__add_quote(tauthor, tquote, '0', tcategory)
+    except Exception as e:
+      self.__add_error('scrape_brainy_qod: %s' % str(e))
+
+  def print_quote(self):
+    self.__connect()
+
+    query = '''SELECT
+                  quotes.quote_id AS qid,
+				          quotes.quote AS quote,
+                  authors.author_name AS author,
+                  categories.category AS category,
+				          quotes.used AS used
+                FROM quotes
+                LEFT JOIN authors ON quotes.author_id = authors.author_id
+                LEFT JOIN categories ON quotes.category_id = categories.category_id
+				        ORDER BY quotes.used ASC LIMIT 1;
+                '''
+
+    cursor = self.dbconn.cursor()
+    cursor.execute(query)
+    row = cursor.fetchone()
+
+    if row:
+      qid, quote, author, category, used = row
+      query = '''UPDATE quotes SET used = used + 1 WHERE quote_id = ?'''
+      cursor.execute(query, (qid,))
+      self.__commit()
+    else:
+      quote = '"The phoenix must burn to emerge."'
+      author = 'Janet Fitch'
+
+    print('%s - %s' % (quote, author))
 
 def main():
+
   usage = "usage: %prog [options]"
   parser = OptionParser(usage)
   parser.add_option("-d", "--debug", action="store_true", dest="debug", default=0, help='specify debug mode')
@@ -46,33 +275,11 @@ def main():
   options = vars(opts)
 
   if options['version']:
-    basenm = os.path.basename(sys.argv[0])
-    print('%s Version: 2.0.0' % basenm)
+    print('%s Version: 3.0.0' % Path(sys.argv[0]).name)
     exit(0)
 
-  try:
-    today = datetime.datetime.now().strftime("%Y%m%d")
-    qfn = '/opt/nixadmutils/var/%s-andiquote.json' % today
-    quotes = load_quotes(qfn)
-    # print(json.dumps(quotes, indent=2))
-    nq = next_quote(quotes)
-    # print(nq)
-    quote = quotes[nq]['quote']
-    author = quotes[nq]['author']
-    quotes[nq]['used'] += 1
-    with open(qfn, "w") as outfile:
-      json.dump(quotes, outfile)
-    failure = False
-  except:
-    if options['debug']:
-      print("Unexpected error:", sys.exc_info()[0])
-    failure = True
+  qs = QuoteServer(options)
+  qs.print_quote()
 
-  if failure:
-    quote = '"The phoenix must burn to emerge."'
-    author = 'Janet Fitch'
-
-  print('%s - %s' % (quote, author))
-
-if __name__ == "__main__":
-    main()
+if __name__ == '__main__':
+  main()

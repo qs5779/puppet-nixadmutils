@@ -10,37 +10,46 @@ from optparse import OptionParser
 from pathlib import Path
 import re
 import requests
+import shutil
 import sqlite3
 
 class QuoteServer():
   def __init__(self, options):
     self.DBVERSION = '1'
     self.DBDIRECTORY = Path('/opt/nixadmutils/var')
+    self.notices = {}
+    self.warnings = {}
+    self.errors = {}
 
     try:
       if not Path.is_dir(self.DBDIRECTORY):
         Path.mkdir(self.DBDIRECTORY, parents=True)
-      logname = str(self.DBDIRECTORY / 'randomquotes.log')
+      logname = self.DBDIRECTORY / 'randomquotes.log'
+      self.dbfilenm = self.DBDIRECTORY / 'randomquotes.sqlite'
+      s_logname = str(logname)
       if options['debug']:
         llevel = logging.DEBUG
       else:
         llevel = logging.INFO
 
-      logging.basicConfig(filename=logname,
+      if not logname.exists():
+        logname.touch()
+        shutil.chown(s_logname, group='users')
+        os.chmod(s_logname, 0o664)
+
+      logging.basicConfig(filename=s_logname,
                             filemode='a',
                             format='%(asctime)s %(name)s %(levelname)s %(message)s',
                             datefmt='%H:%M:%S',
                             level=llevel)
 
-      logging.info("Running Quote Server")
+      # logging.info("Running Quote Server")
 
       self.logger = logging.getLogger('QuoteServer')
-      self.dbfilenm = self.DBDIRECTORY / 'randomquotes.sqlite'
+
+      self.logger.info("Started.")
       self.dbconn = None
       self.regex_unknown = re.compile('unknown', re.IGNORECASE)
-      self.notices = {}
-      self.warnings = {}
-      self.errors = {}
 
     except Exception as e:
       raise
@@ -84,6 +93,9 @@ class QuoteServer():
     self.dbconn = connection
     self.__commit()
     self.__import_quotes()
+    s_dbfilenm = str(self.dbfilenm)
+    shutil.chown(s_dbfilenm, group='users')
+    os.chmod(s_dbfilenm, 0o664)
 
   def __commit(self):
     self.dbconn.commit()
@@ -208,25 +220,25 @@ class QuoteServer():
         category = item.find("h2",class_="qotd-h2")
         if category:
           tcategory = category.get_text().strip()
-          logging.debug('category: %s' % tcategory)
+          self.logger.debug('category: %s' % tcategory)
         else:
           tcategory = 'None'
         # <div style="display: flex;justify-content: space-between">
         quote = item.find("div", { "style" : display })
         if quote:
           tquote = quote.get_text().strip()
-          logging.debug('quote: %s' % tquote)
+          self.logger.debug('quote: %s' % tquote)
         else:
-          logging.warning('Scrape quote number %d failed.' % qnbr)
+          self.logger.warning('Scrape quote number %d failed.' % qnbr)
           failed += 1
           continue
         # <a href="/authors/jonathan-swift-quotes" class="bq-aut qa_155269 oncl_a" title="view author">Jonathan Swift</a>
         author = item.find("a", {"title" : "view author"})
         if author:
           tauthor = author.get_text().strip()
-          logging.debug('author: %s' % tauthor)
+          self.logger.debug('author: %s' % tauthor)
         else:
-          logging.warning('Scrape author number %d failed.' % qnbr)
+          self.logger.warning('Scrape author number %d failed.' % qnbr)
           failed += 1
           continue
         self.__add_quote(tauthor, tquote, '0', tcategory)
@@ -234,34 +246,44 @@ class QuoteServer():
       self.__add_error('scrape_brainy_qod: %s' % str(e))
 
   def print_quote(self):
-    self.__connect()
+    try:
+      self.__connect()
 
-    query = '''SELECT
-                  quotes.quote_id AS qid,
-				          quotes.quote AS quote,
-                  authors.author_name AS author,
-                  categories.category AS category,
-				          quotes.used AS used
-                FROM quotes
-                LEFT JOIN authors ON quotes.author_id = authors.author_id
-                LEFT JOIN categories ON quotes.category_id = categories.category_id
-				        ORDER BY quotes.used ASC LIMIT 1;
-                '''
+      query = '''SELECT
+                    quotes.quote_id AS qid,
+                    quotes.quote AS quote,
+                    authors.author_name AS author,
+                    categories.category AS category,
+                    quotes.used AS used
+                  FROM quotes
+                  LEFT JOIN authors ON quotes.author_id = authors.author_id
+                  LEFT JOIN categories ON quotes.category_id = categories.category_id
+                  ORDER BY quotes.used ASC LIMIT 1;
+                  '''
 
-    cursor = self.dbconn.cursor()
-    cursor.execute(query)
-    row = cursor.fetchone()
+      cursor = self.dbconn.cursor()
+      cursor.execute(query)
+      row = cursor.fetchone()
 
-    if row:
-      qid, quote, author, category, used = row
-      query = '''UPDATE quotes SET used = used + 1 WHERE quote_id = ?'''
-      cursor.execute(query, (qid,))
-      self.__commit()
-    else:
-      quote = '"The phoenix must burn to emerge."'
-      author = 'Janet Fitch'
+      if row:
+        qid, quote, author, category, used = row
+        query = '''UPDATE quotes SET used = used + 1 WHERE quote_id = ?'''
+        cursor.execute(query, (qid,))
+        self.__commit()
+      else:
+        quote = '"The phoenix must burn to emerge."'
+        author = 'Janet Fitch'
 
-    print('%s - %s' % (quote, author))
+      print('%s - %s' % (quote, author))
+    except Exception as e:
+      self.__add_error(str(e))
+
+    for key in self.notices:
+      self.logger.info('%s (%d)', (key, self.notices[key]))
+    for key in self.warnings:
+      self.logger.warning('%s (%d)', (key, self.notices[key]))
+    for key in self.errors:
+      self.logger.error('%s (%d)', (key, self.notices[key]))
 
 def main():
 

@@ -20,6 +20,7 @@ class QuoteServer():
     self.notices = {}
     self.warnings = {}
     self.errors = {}
+    self.options = options
 
     try:
       if not Path.is_dir(self.DBDIRECTORY):
@@ -249,32 +250,35 @@ class QuoteServer():
     try:
       self.__connect()
 
-      query = '''SELECT
-                    quotes.quote_id AS qid,
-                    quotes.quote AS quote,
-                    authors.author_name AS author,
-                    categories.category AS category,
-                    quotes.used AS used
-                  FROM quotes
-                  LEFT JOIN authors ON quotes.author_id = authors.author_id
-                  LEFT JOIN categories ON quotes.category_id = categories.category_id
-                  ORDER BY quotes.used ASC LIMIT 1;
-                  '''
+      if not self.options['cron']:
 
-      cursor = self.dbconn.cursor()
-      cursor.execute(query)
-      row = cursor.fetchone()
+        query = '''SELECT
+                      quotes.quote_id AS qid,
+                      quotes.quote AS quote,
+                      authors.author_name AS author,
+                      categories.category AS category,
+                      quotes.used AS used
+                    FROM quotes
+                    LEFT JOIN authors ON quotes.author_id = authors.author_id
+                    LEFT JOIN categories ON quotes.category_id = categories.category_id
+                    ORDER BY quotes.used ASC LIMIT 1;
+                    '''
 
-      if row:
-        qid, quote, author, category, used = row
-        query = '''UPDATE quotes SET used = used + 1 WHERE quote_id = ?'''
-        cursor.execute(query, (qid,))
-        self.__commit()
-      else:
-        quote = '"The phoenix must burn to emerge."'
-        author = 'Janet Fitch'
+        cursor = self.dbconn.cursor()
+        cursor.execute(query)
+        row = cursor.fetchone()
 
-      print('%s - %s' % (quote, author))
+        if row:
+          qid, quote, author, category, used = row
+          query = '''UPDATE quotes SET used = used + 1 WHERE quote_id = ?'''
+          cursor.execute(query, (qid,))
+          self.__commit()
+        else:
+          quote = '"The phoenix must burn to emerge."'
+          author = 'Janet Fitch'
+
+        print('%s - %s' % (quote, author))
+
     except Exception as e:
       self.__add_error(str(e))
 
@@ -289,6 +293,7 @@ def main():
 
   usage = "usage: %prog [options]"
   parser = OptionParser(usage)
+  parser.add_option("-c", "--cron", action="store_true", dest="cron", default=0, help='specify executed from cron')
   parser.add_option("-d", "--debug", action="store_true", dest="debug", default=0, help='specify debug mode')
   parser.add_option("-V", "--version", action="store_true", dest="version", default=False, help='show version and exit')
 

@@ -286,9 +286,9 @@ class QuoteServer():
     for key in self.notices:
       self.logger.info('%s (%d)', (key, self.notices[key]))
     for key in self.warnings:
-      self.logger.warning('%s (%d)', (key, self.notices[key]))
+      self.logger.warning('%s (%d)', (key, self.warnings[key]))
     for key in self.errors:
-      self.logger.error('%s (%d)', (key, self.notices[key]))
+      self.logger.error('%s (%d)', (key, self.errors[key]))
 
 def main():
 

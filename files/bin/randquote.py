@@ -7,6 +7,7 @@ import glob
 import json
 import logging
 from optparse import OptionParser
+import os
 from pathlib import Path
 import re
 import requests

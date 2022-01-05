@@ -66,7 +66,7 @@ describe 'nixadmutils' do
           pip_list = []
           package_list = %w[python3-pip python3-tz python3-distro python3-packaging python3-systemd python3-yaml python3-feedparser python3-lockfile]
         end
-      when %r{centos|oraclelinux|redhat|scientific}
+      when %r{rocky|centos|oraclelinux|redhat|scientific}
         if os_facts[:operatingsystemrelease].to_i < 8
           package_list = %w[python3]
           pip_list = %w[feedparser packaging distro PyYAML pytz lockfile]

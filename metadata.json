@@ -1,6 +1,6 @@
 {
   "name": "qs5779-nixadmutils",
-  "version": "2.0.4",
+  "version": "2.0.5",
   "author": "qs5779",
   "summary": "A collection of generic scripts I use frequently to administer Linux systems.",
   "license": "Apache-2.0",
@@ -15,32 +15,24 @@
   ],
   "operatingsystem_support": [
     {
+      "operatingsystem": "Rocky",
+      "operatingsystemrelease": [ "8" ]
+    },
+    {
       "operatingsystem": "CentOS",
-      "operatingsystemrelease": [
-        "7",
-        "8"
-      ]
+      "operatingsystemrelease": [ "7", "8" ]
     },
     {
       "operatingsystem": "OracleLinux",
-      "operatingsystemrelease": [
-        "7",
-        "8"
-      ]
+      "operatingsystemrelease": [ "7", "8" ]
     },
     {
       "operatingsystem": "RedHat",
-      "operatingsystemrelease": [
-        "7",
-        "8"
-      ]
+      "operatingsystemrelease": [ "7", "8" ]
     },
     {
       "operatingsystem": "Scientific",
-      "operatingsystemrelease": [
-        "7",
-        "8"
-      ]
+      "operatingsystemrelease": [ "7", "8" ]
     },
     {
       "operatingsystem": "Debian",

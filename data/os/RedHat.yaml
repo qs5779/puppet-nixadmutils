@@ -11,3 +11,6 @@ nixadmutils::required_pips:
   - PyYAML
   - pytz
   - lockfile
+
+nixadmutils::config::variables:
+  RKHUNTERLOG: /var/log/rkhunter/rkhunter.log

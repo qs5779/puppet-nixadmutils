@@ -10,3 +10,6 @@ nixadmutils::required_packages: []
 nixadmutils::required_pips: []
 nixadmutils::journal_packages: []
 nixadmutils::journal_pips: []
+
+nixadmutils::config::variables:
+  RKHUNTERLOG: /var/log/rkhunter.log

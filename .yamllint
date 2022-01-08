@@ -1,0 +1,11 @@
+---
+extends: default
+
+rules:
+  # 120 I have a large monitor
+  line-length:
+    max: 120
+    level: warning
+
+ignore: |
+  .pre-commit-config.yaml

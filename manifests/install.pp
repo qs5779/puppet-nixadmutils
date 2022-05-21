@@ -178,7 +178,7 @@ class nixadmutils::install (
   }
 
   $params = { 'install_dir' => $install_dir }
-  $templates = { 'rkcheck' => 'sbin', 'rkwarnings' => 'sbin', 'mwtfalertable.py' => 'lib/python' }
+  $templates = { 'rkcheck' => 'sbin', 'rkwarnings' => 'sbin' }
   $templates.each | String $base, String $relpath | {
 
     $mode = $relpath ? {

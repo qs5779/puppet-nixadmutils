@@ -87,6 +87,12 @@ class nixadmutils::install (
       onlyif => "[ -f ${alerts} ] && [ \"$(stat -c %a ${alerts})\" != '664' ]",
     }
 
+    file {"${install_dir}/lib/python":
+      ensure  => absent,
+      recurse => true,
+      force   => true,
+    }
+
     $script_directories = ['bin', 'sbin', 'build', 'lib']
 
     $script_directories.each | String $dn | {
@@ -131,7 +137,6 @@ class nixadmutils::install (
 
     $links = {
       "${sbin}/lspuppet" => 'puppet-ls',
-      "${sbin}/pupenv" => 'pupcfg',
       "${install_dir}/build/bin/gitx" => 'gitnox',
     }
 
@@ -146,6 +151,9 @@ class nixadmutils::install (
       "${sbin}/pupstatus",
       "${sbin}/puptrigger",
       "${sbin}/pupaction",
+      "${sbin}/pupflag",
+      "${sbin}/pupcfg",
+      "${sbin}/pupenv",
       "${bin}/fw-list",
       "${bin}/pkglist",
       "${bin}/wtfo-logger",

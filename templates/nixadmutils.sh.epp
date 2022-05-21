@@ -18,19 +18,4 @@ then
   done
 fi
 
-NIXPYLOC=<%= $install_dir %>/lib/python
-
-if [ -d "$NIXPYLOC" ]
-then
-  if [ -n "$PYTHONPATH" ]
-  then
-    if ! echo $PYTHONPATH | grep -q ${d} ; then
-      PYTHONPATH="${NIXPYLOC}:${PYTHONPATH}"
-    fi
-  else
-    PYTHONPATH="${NIXPYLOC}"
-  fi
-  export PYTHONPATH
-fi
-
 export PATH

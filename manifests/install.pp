@@ -122,6 +122,7 @@ class nixadmutils::install (
         source  => "puppet:///modules/nixadmutils/${dn}",
         require => File[$install_dir],
         notify  => Exec[$target],
+        purge   => true,
       }
 
       exec { $target:
